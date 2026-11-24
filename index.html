@@ -1,1099 +1,1396 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexWin — Gagnez des Lots par votre Adresse</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        dark: {
-                            950: '#09090b',
-                            900: '#121216',
-                            800: '#1c1c22',
-                            700: '#27272f',
-                        },
-                        neon: {
-                            green: '#00ff88',
-                            purple: '#9d4edd',
-                            pink: '#ff2a85',
-                            cyan: '#00f0ff'
-                        }
-                    },
-                    animation: {
-                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 10px rgba(0, 255, 136, 0.2)' },
-                            '100%': { boxShadow: '0 0 25px rgba(0, 255, 136, 0.6)' },
-                        }
-                    }
-                }
+    <title>SkillWin - Plateforme de Jeux d'Adresse &amp; Lots High-Tech</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --bg-card: #181c2a;
+            --bg-card-hover: #212638;
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #00ff88;
+            --danger: #ff3366;
+            --warning: #ffaa00;
+            --paypal: #0070ba;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+            --border: #2a3044;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* Header / Navbar */
+        header {
+            background: rgba(24, 28, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .wallet {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-dark);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .balance {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 15px;
+        }
+
+        .btn-deposit {
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: #0f111a;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 13px;
+            transition: transform 0.2s;
+        }
+
+        .btn-deposit:hover {
+            transform: scale(1.05);
+        }
+
+        /* Hero Banner */
+        .hero {
+            text-align: center;
+            padding: 35px 5% 25px;
+            background: radial-gradient(circle at top, #1e2538 0%, var(--bg-dark) 70%);
+        }
+
+        .hero h1 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto 15px;
+            font-size: 15px;
+        }
+
+        .badge-legal {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 5% 60px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Prizes Grid */
+        .prizes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(225px, 1fr));
+            gap: 16px;
+            margin-bottom: 35px;
+        }
+
+        .prize-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .prize-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+        }
+
+        .prize-card.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        }
+
+        .hot-tag {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .prize-icon {
+            font-size: 40px;
+            margin: 18px 0 8px;
+            text-align: center;
+        }
+
+        .prize-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .prize-value {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .progress-container {
+            background: var(--bg-dark);
+            border-radius: 10px;
+            height: 9px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            transition: width 0.4s ease;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .entry-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--bg-dark);
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        /* Game & Leaderboard Layout */
+        .arena-layout {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .arena-layout {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <style>
-        body {
-            background-color: #09090b;
-            color: #f4f4f5;
-            background-image: 
-                radial-gradient(circle at 15% 10%, rgba(157, 78, 221, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 85% 80%, rgba(0, 255, 136, 0.08) 0%, transparent 40%);
-            min-height: 100vh;
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
         }
 
-        /* Effet verre dépoli */
-        .glass-panel {
-            background: rgba(24, 24, 30, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        /* Piste du jeu d'adresse */
-        .game-track {
-            background: linear-gradient(90deg, 
-                rgba(255,42,133,0.15) 0%, 
-                rgba(157,78,221,0.15) 35%, 
-                rgba(0,255,136,0.25) 50%, 
-                rgba(157,78,221,0.15) 65%, 
-                rgba(255,42,133,0.15) 100%);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+        .status-pill {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--primary);
         }
 
-        .cursor-glow {
-            box-shadow: 0 0 15px #ff2a85, 0 0 30px #ff2a85;
+        .status-pill.closed {
+            background: rgba(255, 51, 102, 0.15);
+            color: var(--danger);
         }
 
-        .target-glow {
-            box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88;
+        /* Telemetry Bar (Live Chrono + Target) */
+        .telemetry-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
         }
 
-        /* Scrollbar personnalisée */
-        ::-webkit-scrollbar {
+        .telemetry-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            text-align: center;
+        }
+
+        .telemetry-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+            margin-top: 2px;
+        }
+
+        .telemetry-val.chrono {
+            color: var(--warning);
+        }
+
+        /* Skill Track */
+        .game-instructions {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .track-wrapper {
+            background: var(--bg-dark);
+            padding: 30px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .track {
+            position: relative;
+            width: 100%;
+            height: 44px;
+            background: #131622;
+            border-radius: 22px;
+            border: 2px solid #2e354d;
+            overflow: hidden;
+        }
+
+        .target-zone {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 24px;
+            background: rgba(0, 255, 136, 0.15);
+            transform: translateX(-50%);
+        }
+
+        .target-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px var(--accent);
+            z-index: 2;
+        }
+
+        .cursor {
+            position: absolute;
+            left: 0%;
+            top: 0;
+            bottom: 0;
             width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #121216;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #27272f;
+            background: var(--danger);
+            transform: translateX(-50%);
+            box-shadow: 0 0 12px var(--danger);
+            z-index: 3;
             border-radius: 3px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3f3f46;
+
+        .track-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .btn-play {
+            width: 100%;
+            padding: 16px;
+            font-size: 17px;
+            font-weight: 800;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(90deg, var(--accent), #00d2ff);
+            color: #0f111a;
+        }
+
+        .btn-play:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-play.stop-mode {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 25px rgba(255, 51, 102, 0.5);
+        }
+
+        .btn-play:disabled {
+            background: #2a3044;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .result-box {
+            margin-top: 18px;
+            padding: 15px;
+            border-radius: 10px;
+            background: var(--bg-dark);
+            text-align: center;
+            min-height: 75px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        /* Leaderboard */
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            gap: 10px;
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item.top-1 {
+            background: rgba(0, 255, 136, 0.08);
+            border-radius: 8px;
+            border-bottom: none;
+            margin-bottom: 6px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rank {
+            font-weight: 800;
+            width: 24px;
+            color: var(--text-muted);
+        }
+
+        .top-1 .rank {
+            color: var(--accent);
+        }
+
+        .tie-badge {
+            display: inline-block;
+            font-size: 10px;
+            background: rgba(255, 170, 0, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(255, 170, 0, 0.35);
+            padding: 1px 6px;
+            border-radius: 6px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .score-details {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .score-val {
+            font-family: monospace;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 14px;
+            display: block;
+        }
+
+        .time-val {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        /* Winner Banner */
+        .winner-banner {
+            display: none;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 242, 254, 0.2));
+            border: 1px solid var(--accent);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .winner-banner.show {
+            display: block;
+            animation: popIn 0.4s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Modals (Payment & Rules) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 7, 13, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: popIn 0.25s ease;
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* Payment Modal Elements */
+        .amount-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .amount-btn {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            color: var(--text-main);
+            padding: 12px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .amount-btn span {
+            display: block;
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .amount-btn.selected {
+            border-color: var(--primary);
+            background: rgba(0, 242, 254, 0.1);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .method-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .method-card.selected {
+            border-color: var(--primary);
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .method-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .method-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+        }
+
+        .free-promo-box {
+            background: rgba(0, 255, 136, 0.06);
+            border: 1px dashed rgba(0, 255, 136, 0.4);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .free-promo-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .promo-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .promo-input {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .btn-promo {
+            background: var(--accent);
+            color: #0f111a;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-confirm-pay {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: #0f111a;
+            transition: transform 0.2s;
+        }
+
+        .btn-confirm-pay.paypal-style {
+            background: #0070ba;
+            color: white;
+        }
+
+        .btn-confirm-pay:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Rules Modal Content */
+        .rules-section {
+            margin-bottom: 16px;
+            background: var(--bg-dark);
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .rules-section h4 {
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .rules-section p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 25px 5%;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            background: var(--bg-card);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-neon-green selection:text-dark-950">
+<body>
 
-    <!-- Barre de Navigation Supérieure -->
-    <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <!-- Logo -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green to-neon-purple p-[2px]">
-                    <div class="w-full h-full bg-dark-950 rounded-[10px] flex items-center justify-center">
-                        <svg class="w-6 h-6 text-neon-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div>
-                    <span class="font-black text-xl tracking-tight text-white">APEX<span class="text-neon-green">WIN</span></span>
-                    <span class="hidden sm:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neon-purple/20 text-neon-purple border border-neon-purple/30">100% Adresse • Zéro Hasard</span>
-                </div>
-            </div>
-
-            <!-- Portefeuille & Utilisateur -->
-            <div class="flex items-center gap-2.5 sm:gap-4">
-                <button onclick="openRulesModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-900 hover:bg-dark-800 border border-white/10 hover:border-neon-cyan/40 text-xs sm:text-sm font-semibold text-zinc-200 transition cursor-pointer">
-                    <span>📜</span>
-                    <span>Règlement</span>
-                </button>
-
-                <div class="flex items-center gap-2 bg-dark-900 border border-white/10 rounded-xl px-3 py-1.5">
-                    <div class="flex flex-col text-right">
-                        <span class="text-[10px] text-zinc-400 uppercase font-semibold">Solde Disponible</span>
-                        <span id="wallet-balance" class="font-mono font-bold text-neon-green text-sm sm:text-base">50.00 €</span>
-                    </div>
-                    <button onclick="openRechargeModal()" title="Recharger votre portefeuille ou activer un bonus gratuit" class="ml-1 px-2.5 h-7 rounded-lg bg-neon-green/15 hover:bg-neon-green/30 text-neon-green flex items-center justify-center transition cursor-pointer font-bold text-xs gap-1">
-                        <span>+ Recharger</span>
-                    </button>
-                </div>
-
-                <div class="hidden md:flex items-center gap-2.5 pl-2 border-l border-white/10">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center font-bold text-xs text-dark-950">
-                        JP
-                    </div>
-                    <span class="text-sm font-medium text-zinc-200">Joueur_Pro</span>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Contenu Principal -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-
-        <!-- Section 1 : Vitrine des Lots -->
-        <section>
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Compétitions en Cours</h1>
-                    <p class="text-sm text-zinc-400 mt-1">Sélectionnez un lot et battez le record d'adresse avant la fin des participations.</p>
-                </div>
-                <div class="flex items-center gap-2 text-xs text-zinc-400 bg-dark-900/80 px-3 py-1.5 rounded-lg border border-white/5 self-start sm:self-auto">
-                    <span class="w-2 h-2 rounded-full bg-neon-green animate-ping"></span>
-                    <span>Sessions actives en temps réel</span>
-                </div>
-            </div>
-
-            <!-- Grille des 5 Lots -->
-            <div id="prizes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Généré dynamiquement par JS -->
-            </div>
-        </section>
-
-        <!-- Section 2 : Arène de Jeu & Classement en Direct -->
-        <section id="arena-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- Colonne Gauche : Le Mini-Jeu d'Adresse (7 colonnes) -->
-            <div class="lg:col-span-7 glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-                <!-- Badge Anti-triche -->
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-6 pb-4 border-b border-white/10">
-                    <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-neon-green">Arène d'Adresse</span>
-                        <h2 id="active-prize-title" class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">iPhone 17 Pro Max (256 Go)</h2>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs text-zinc-400 block">Record à battre</span>
-                        <span id="active-prize-record" class="font-mono font-extrabold text-lg text-neon-cyan">0.015% (0.612s)</span>
-                    </div>
-                </div>
-
-                <!-- Instructions -->
-                <div class="bg-dark-950/80 rounded-xl p-4 border border-white/5 mb-6 flex items-center justify-between gap-4">
-                    <div class="text-xs sm:text-sm text-zinc-300">
-                        <strong class="text-white">Règle :</strong> Arrêtez le curseur rouge exactement sur la ligne verte (<span class="font-mono text-neon-green">50.000%</span>). En cas d'égalité, le temps le plus rapide (<span class="font-mono text-neon-cyan">s</span>) l'emporte.
-                    </div>
-                </div>
-
-                <!-- Piste du Jeu -->
-                <div class="relative my-8 select-none">
-                    <!-- Indicateurs gradués -->
-                    <div class="flex justify-between text-[11px] font-mono text-zinc-500 mb-2 px-1">
-                        <span>0.00%</span>
-                        <span>25.00%</span>
-                        <span class="text-neon-green font-bold">CIBLE (50.000%)</span>
-                        <span>75.00%</span>
-                        <span>100.00%</span>
-                    </div>
-
-                    <!-- Barre de jeu -->
-                    <div class="relative w-full h-16 sm:h-20 game-track rounded-2xl border-2 border-white/15 overflow-hidden">
-                        <!-- Zone de précision visuelle -->
-                        <div class="absolute left-1/2 top-0 bottom-0 w-16 -translate-x-1/2 bg-neon-green/10 border-x border-neon-green/20"></div>
-                        
-                        <!-- Ligne Cible Exacte (50%) -->
-                        <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-neon-green -translate-x-1/2 z-10 target-glow"></div>
-
-                        <!-- Curseur Mobile -->
-                        <div id="game-cursor" class="absolute left-0 top-0 bottom-0 w-1.5 bg-neon-pink -translate-x-1/2 z-20 cursor-glow transition-none" style="left: 0%;">
-                            <div class="w-4 h-4 rounded-full bg-neon-pink border-2 border-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-md"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Télémétrie en direct -->
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
-                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Position</span>
-                        <span id="live-position" class="font-mono font-bold text-base sm:text-lg text-white">0.000%</span>
-                    </div>
-                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
-                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Chrono Réaction</span>
-                        <span id="live-timer" class="font-mono font-bold text-base sm:text-lg text-neon-cyan">0.000 s</span>
-                    </div>
-                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
-                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Écart Cible</span>
-                        <span id="live-diff" class="font-mono font-bold text-base sm:text-lg text-zinc-500">—</span>
-                    </div>
-                </div>
-
-                <!-- Bouton d'action principal -->
-                <button id="play-btn" onclick="toggleGame()" class="w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)] active:scale-[0.99]">
-                    Miser 5.00 € et Jouer
-                </button>
-
-                <!-- Zone de résultat / Notification -->
-                <div id="feedback-box" class="hidden mt-5 p-4 rounded-xl border text-center text-sm font-medium transition-all"></div>
-
-                <!-- Pied technique -->
-                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-zinc-500">
-                    <span>Vitesse constante calibrée</span>
-                    <span>Anti-triche Serveur</span>
-                </div>
-            </div>
-
-            <!-- Colonne Droite : Classement en Direct (5 colonnes) -->
-            <div class="lg:col-span-5 glass-panel rounded-2xl p-6 flex flex-col">
-                <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                    <div>
-                        <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
-                            <span>🏆 Classement en Direct</span>
-                        </h3>
-                        <p class="text-xs text-zinc-400 mt-0.5">Trié par écart, puis départagé au millième de seconde</p>
-                    </div>
-                    <span id="leaderboard-count" class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-dark-950 text-neon-green border border-neon-green/20">
-                        398 / 400
-                    </span>
-                </div>
-
-                <!-- En-tête colonnes -->
-                <div class="grid grid-cols-12 text-[11px] font-bold uppercase tracking-wider text-zinc-500 px-3 pb-2">
-                    <div class="col-span-2">Rang</div>
-                    <div class="col-span-5">Joueur</div>
-                    <div class="col-span-3 text-right">Écart</div>
-                    <div class="col-span-2 text-right">Chrono</div>
-                </div>
-
-                <!-- Liste des scores -->
-                <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-                    <!-- Généré dynamiquement par JS -->
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Pied de Page (Footer) -->
-    <footer class="border-t border-white/10 bg-dark-950/90 mt-16 py-8 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
-            <div class="flex items-center gap-2">
-                <span class="font-black text-sm text-white">APEX<span class="text-neon-green">WIN</span></span>
-                <span>• Plateforme officielle de compétitions d'adresse en ligne.</span>
-            </div>
-            <div class="flex flex-wrap items-center justify-center gap-5">
-                <button onclick="openRulesModal()" class="hover:text-neon-green transition cursor-pointer font-medium">Règlement officiel (CGJ)</button>
-                <button onclick="openRulesModal('art3')" class="hover:text-neon-cyan transition cursor-pointer font-medium">Départage &amp; Équité</button>
-                <button onclick="openRechargeModal()" class="hover:text-white transition cursor-pointer font-medium">Paiements sécurisés &amp; Bonus</button>
-            </div>
-            <div class="flex items-center gap-2 text-zinc-500">
-                <span>PayPal</span> • <span>Visa</span> • <span>Mastercard</span> • <span>Apple Pay</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Modale 1 : Règlement Officiel (CGJ) -->
-    <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="glass-panel max-w-2xl w-full rounded-2xl border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
-            <!-- En-tête Modale Règlement -->
-            <div class="px-6 py-4 bg-dark-950/90 border-b border-white/10 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <span class="text-xl">📜</span>
-                    <div>
-                        <h3 class="text-lg font-extrabold text-white">Règlement Officiel &amp; Conditions Générales de Jeu</h3>
-                        <p class="text-[11px] text-neon-green font-semibold">Cadre légal français • Compétitions d'adresse sans hasard</p>
-                    </div>
-                </div>
-                <button onclick="closeRulesModal()" class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-700 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer">
-                    ✕
-                </button>
-            </div>
-
-            <!-- Corps défilant des articles -->
-            <div id="rules-content" class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
-                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-neon-green/15 text-neon-green font-mono text-xs">Article 1</span>
-                        Nature du jeu (100 % Adresse, Zéro Hasard)
-                    </h4>
-                    <p>
-                        Les compétitions organisées sur <strong>ApexWin</strong> constituent exclusivement des <strong>jeux d'adresse et de réflexes</strong> conformes à la législation française en vigueur. Aucun tirage au sort ni algorithme aléatoire n'intervient dans la désignation des gagnants. Tous les participants d'une même session affrontent une épreuve strictement identique (même vitesse de déplacement, même trajectoire et même cible).
-                    </p>
-                </div>
-
-                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
-                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple font-mono text-xs">Article 2</span>
-                        Fonctionnement des sessions et paliers
-                    </h4>
-                    <p>
-                        Chaque lot est associé à un montant de participation unitaire fixe et à un plafond de participations (ex. 300 ou 400 essais). Dès que la dernière participation du palier est validée, la session se clôture automatiquement et le classement est figé. Si une session n'atteint pas son quota dans un délai de <strong>30 jours calendaires</strong>, l'intégralité des mises engagées est automatiquement remboursée sur le portefeuille des joueurs.
-                    </p>
-                </div>
-
-                <div id="art3" class="bg-dark-900/90 p-4 rounded-xl border border-neon-cyan/30">
-                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-neon-cyan/15 text-neon-cyan font-mono text-xs">Article 3</span>
-                        Départage strict des ex æquo
-                    </h4>
-                    <p>
-                        Le classement est établi selon l'écart le plus faible mesuré par rapport au centre exact (<span class="font-mono text-white">50.000%</span>). En cas d'égalité parfaite d'écart entre deux ou plusieurs joueurs, <strong>le temps de réaction le plus court mesuré au millième de seconde</strong> par nos serveurs horodatés désigne l'unique vainqueur. À défaut d'écart sur ces deux critères, le participant ayant validé son score en premier dans l'ordre chronologique l'emporte.
-                    </p>
-                </div>
-
-                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
-                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs">Article 4</span>
-                        Attribution et livraison des lots
-                    </h4>
-                    <p>
-                        Les produits physiques neufs (consoles, smartphones, accessoires) sont expédiés gratuitement sous <strong>7 jours ouvrés</strong> avec suivi et assurance après vérification de l'identité et de la majorité du gagnant. Les cartes cadeaux dématérialisées sont délivrées par voie électronique sous 24 heures.
-                    </p>
-                </div>
-
-                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
-                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded bg-neon-pink/20 text-neon-pink font-mono text-xs">Article 5</span>
-                        Jeu responsable &amp; Crédits gratuits promotionnels
-                    </h4>
-                    <p>
-                        La participation est strictement réservée aux personnes majeures (18 ans et plus). Chaque utilisateur peut configurer des plafonds de dépôt hebdomadaires ou mensuels. Des <strong>crédits promotionnels gratuits sans obligation d'achat</strong> sont régulièrement distribués lors de l'inscription ou via nos codes partenaires afin de permettre de tester la plateforme gratuitement.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Pied Modale Règlement -->
-            <div class="px-6 py-4 bg-dark-950/90 border-t border-white/10 flex items-center justify-between">
-                <span class="text-[11px] text-zinc-400">Version en vigueur • Horodatage serveur certifié</span>
-                <button onclick="closeRulesModal()" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-neon-green text-dark-950 hover:bg-[#00e67a] transition cursor-pointer">
-                    J'ai compris et j'accepte
-                </button>
-            </div>
+<header>
+    <div class="logo">🎯 SkillWin</div>
+    <div class="nav-actions">
+        <button class="btn-outline" onclick="openModal('rules-modal')">📜 Règlement &amp; CGJ</button>
+        <div class="wallet">
+            <span>Solde : <span class="balance" id="user-balance">50.00 €</span></span>
+            <button class="btn-deposit" onclick="openModal('payment-modal')">+ Recharger</button>
         </div>
     </div>
+</header>
 
-    <!-- Modale 2 : Rechargement Sécurisé & Crédits Gratuits -->
-    <div id="recharge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="glass-panel max-w-lg w-full rounded-2xl border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
-            <!-- En-tête Modale Paiement -->
-            <div class="px-6 py-4 bg-dark-950/90 border-b border-white/10 flex items-center justify-between">
+<section class="hero">
+    <h1>Votre adresse remporte les meilleurs lots High-Tech</h1>
+    <p>Sélectionnez l'un des 5 articles les plus recherchés. Dès que le palier de participations est atteint, le joueur le plus précis et le plus rapide remporte le lot.</p>
+    <div class="badge-legal">⚖️ 100% Jeu d'Adresse • Départage au millième de seconde • Zéro hasard</div>
+</section>
+
+<main class="container">
+    <h2 class="section-title">🔥 Top 5 des lots les plus recherchés</h2>
+    
+    <!-- Vitrine des 5 lots -->
+    <div class="prizes-grid" id="prizes-grid"></div>
+
+    <!-- Zone de jeu et Classement -->
+    <div class="arena-layout" id="arena-section">
+        <!-- Panneau de jeu -->
+        <div class="panel">
+            <div class="panel-header">
                 <div>
-                    <h3 class="text-lg font-extrabold text-white">Recharger mon Portefeuille</h3>
-                    <p class="text-xs text-zinc-400">Créditez votre solde instantanément ou activez un bonus gratuit</p>
+                    <h3 id="active-prize-name">iPhone 17 Pro Max (256 Go)</h3>
+                    <small style="color: var(--text-muted);" id="active-prize-sub">Mise : 5.00 € • Palier : 400 participations</small>
                 </div>
-                <button onclick="closeRechargeModal()" class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-700 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer">
-                    ✕
-                </button>
+                <span class="status-pill" id="session-status">EN COURS (398/400)</span>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-6">
-                <!-- Section Code Promo Gratuit (Sans achat) -->
-                <div class="bg-gradient-to-r from-neon-green/10 to-neon-cyan/10 border border-neon-green/30 rounded-xl p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-bold uppercase tracking-wider text-neon-green flex items-center gap-1.5">
-                            <span>🎁</span> Crédits Gratuits Sans Achat
-                        </span>
-                        <button onclick="fillPromoCode('APEX5')" class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-neon-green/20 text-neon-green hover:bg-neon-green/30 transition cursor-pointer">
-                            Utiliser : APEX5 (+5.00 €)
-                        </button>
-                    </div>
-                    <div class="flex gap-2">
-                        <input id="promo-code-input" type="text" placeholder="Ex: APEX5 ou GRATUIT" class="flex-1 bg-dark-950 border border-white/15 rounded-xl px-3.5 py-2 text-sm font-mono uppercase text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green">
-                        <button onclick="applyPromoCode()" class="px-4 py-2 rounded-xl bg-neon-green text-dark-950 font-extrabold text-xs sm:text-sm hover:bg-[#00e67a] transition cursor-pointer shrink-0">
-                            Activer
-                        </button>
-                    </div>
-                    <p id="promo-feedback" class="text-[11px] mt-2 hidden"></p>
-                </div>
+            <div class="winner-banner" id="winner-banner">
+                <h4>🏆 PALIER ATTEINT — SESSION CLÔTURÉE !</h4>
+                <p id="winner-announcement" style="margin-top: 5px; font-size: 14px;"></p>
+            </div>
 
-                <!-- Sélection du Montant -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5">1. Choisissez un montant de recharge</label>
-                    <div id="amount-options" class="grid grid-cols-2 gap-2.5">
-                        <!-- Généré par JS -->
-                    </div>
+            <!-- Télémétrie en temps réel -->
+            <div class="telemetry-bar">
+                <div class="telemetry-box">
+                    <div class="telemetry-label">Record à battre (Écart / Chrono)</div>
+                    <div class="telemetry-val" id="record-display">0.015% (0.612s)</div>
                 </div>
-
-                <!-- Sélection du Moyen de Paiement -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5">2. Moyen de paiement sécurisé</label>
-                    <div class="grid grid-cols-3 gap-2.5">
-                        <button type="button" onclick="selectPaymentMethod('paypal')" id="pm-paypal" class="pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-[#0070ba]/15 border-[#0070ba] text-white">
-                            <span class="font-black text-sm tracking-tight text-[#38bdf8]">Pay<span class="text-white">Pal</span></span>
-                            <span class="text-[10px] text-zinc-300">Instantané</span>
-                        </button>
-                        <button type="button" onclick="selectPaymentMethod('card')" id="pm-card" class="pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300">
-                            <span class="font-bold text-sm text-white">💳 Carte</span>
-                            <span class="text-[10px] text-zinc-400">Visa / MC</span>
-                        </button>
-                        <button type="button" onclick="selectPaymentMethod('applepay')" id="pm-applepay" class="pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300">
-                            <span class="font-bold text-sm text-white"> Pay / GPay</span>
-                            <span class="text-[10px] text-zinc-400">1-Clic Mobile</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Bouton de validation du paiement -->
-                <div class="pt-2">
-                    <button id="confirm-payment-btn" onclick="processSimulatedPayment()" class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-lg flex items-center justify-center gap-2">
-                        <span>Payer 20.00 € avec PayPal (Recevoir 22.00 €)</span>
-                    </button>
-                    <p class="text-center text-[11px] text-zinc-500 mt-2.5 flex items-center justify-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-neon-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
-                        Transaction chiffrée SSL 256-bit • Sans frais cachés
-                    </p>
+                <div class="telemetry-box">
+                    <div class="telemetry-label">Chrono de réaction en direct</div>
+                    <div class="telemetry-val chrono" id="live-chrono">0.000 s</div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Modale 3 : Fin de Session (Vainqueur désigné) -->
-    <div id="winner-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div class="glass-panel max-w-md w-full rounded-2xl p-6 sm:p-8 text-center border border-neon-green/40 shadow-[0_0_50px_rgba(0,255,136,0.2)] transform transition-all">
-            <div id="modal-icon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-neon-green/20 text-neon-green flex items-center justify-center text-3xl">
-                🏆
-            </div>
-            <h3 id="modal-title" class="text-2xl font-black text-white mb-2">Session Terminée !</h3>
-            <p id="modal-desc" class="text-sm text-zinc-300 mb-6 leading-relaxed">
-                Les 200 participations ont été atteintes.
+            <p class="game-instructions">
+                Cliquez sur <strong>Lancer</strong>, puis appuyez sur <strong>STOP</strong> pour figer le curseur sur <strong>50.000%</strong>. En cas d'égalité d'écart, le chrono le plus rapide l'emporte !
             </p>
-            <div class="bg-dark-950 rounded-xl p-4 mb-6 border border-white/10">
-                <span class="text-xs text-zinc-400 uppercase block mb-1">Grand Vainqueur</span>
-                <span id="modal-winner-name" class="text-xl font-extrabold text-neon-green block">Alex_92</span>
-                <span id="modal-winner-score" class="text-xs font-mono text-zinc-300 mt-1 block">Écart : 0.015% • Temps : 0.612 s</span>
+
+            <div class="track-wrapper">
+                <div class="track">
+                    <div class="target-zone"></div>
+                    <div class="target-line"></div>
+                    <div class="cursor" id="cursor"></div>
+                </div>
+                <div class="track-labels">
+                    <span>0.000%</span>
+                    <span style="color: var(--accent); font-weight: bold;">CIBLE : 50.000%</span>
+                    <span>100.000%</span>
+                </div>
             </div>
-            <button onclick="resetCompletedSession()" class="w-full py-3.5 px-6 rounded-xl font-bold bg-neon-purple hover:bg-neon-purple/90 text-white transition cursor-pointer">
-                Lancer une nouvelle session (0/200)
-            </button>
+
+            <button class="btn-play" id="action-btn" onclick="handleGameAction()">Miser 5.00 € et Jouer</button>
+
+            <div class="result-box" id="result-box">
+                <span style="color: var(--text-muted); font-size: 14px;">Prêt à tenter votre chance ? Vos scores sont enregistrés instantanément.</span>
+            </div>
+        </div>
+
+        <!-- Panneau Classement -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>🏅 Classement de la session</h3>
+                <span style="font-size: 11px; color: var(--text-muted);">Tri : Écart ➔ Chrono</span>
+            </div>
+            <ul class="leaderboard-list" id="leaderboard-list"></ul>
         </div>
     </div>
+</main>
 
-    <script>
-        // --- DONNÉES DE DÉMONSTRATION (TOP 5 DES ARTICLES LES PLUS RECHERCHÉS) ---
-        let walletBalance = 50.00;
-        let selectedPrizeId = 'iphone17';
+<!-- Modale Paiement & Crédits Gratuits -->
+<div class="modal-overlay" id="payment-modal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
+        <div class="modal-title">💳 Recharger votre compte</div>
+        <p class="modal-subtitle">Choisissez un montant ou activez votre bonus de bienvenue gratuit sans obligation d'achat.</p>
 
-        const prizes = [
-            {
-                id: 'iphone17',
-                name: 'iPhone 17 Pro Max (256 Go)',
-                value: '1 479 €',
-                entryFee: 5.00,
-                currentEntries: 398,
-                maxEntries: 400,
-                speed: 1.95,
-                badge: 'Plus que 2 places !',
-                badgeColor: 'bg-neon-pink/20 text-neon-pink border-neon-pink/30',
-                svg: `<svg class="w-12 h-12 text-neon-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01M9 5h6"/><circle cx="15" cy="8" r="1.5"/></svg>`,
-                leaderboard: [
-                    { player: 'Sniper_FR', diff: 0.015, reactionTime: 0.612, isUser: false },
-                    { player: 'Alex_92', diff: 0.015, reactionTime: 1.245, isUser: false },
-                    { player: 'Lucas_M', diff: 0.089, reactionTime: 0.784, isUser: false },
-                    { player: 'Chloe_B', diff: 0.145, reactionTime: 0.910, isUser: false },
-                    { player: 'Mehdi_93', diff: 0.290, reactionTime: 1.105, isUser: false }
-                ]
-            },
-            {
-                id: 'ps5pro',
-                name: 'PlayStation 5 Pro',
-                value: '799 €',
-                entryFee: 3.00,
-                currentEntries: 284,
-                maxEntries: 350,
-                speed: 1.75,
-                badge: 'Ultra Populaire',
-                badgeColor: 'bg-neon-purple/20 text-neon-purple border-neon-purple/30',
-                svg: `<svg class="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M9 2v20M12 2v20M15 2v20"/></svg>`,
-                leaderboard: [
-                    { player: 'Kylian75', diff: 0.042, reactionTime: 0.589, isUser: false },
-                    { player: 'Sarah_Gaming', diff: 0.042, reactionTime: 1.130, isUser: false },
-                    { player: 'Maxime_Pro', diff: 0.118, reactionTime: 0.820, isUser: false },
-                    { player: 'Ines_Win', diff: 0.240, reactionTime: 0.950, isUser: false }
-                ]
-            },
-            {
-                id: 'switch2',
-                name: 'Nintendo Switch 2',
-                value: '449 €',
-                entryFee: 2.00,
-                currentEntries: 192,
-                maxEntries: 280,
-                speed: 1.55,
-                badge: 'Tendance Gaming',
-                badgeColor: 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30',
-                svg: `<svg class="w-12 h-12 text-neon-pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M7 5v14M17 5v14"/><circle cx="4.5" cy="9" r="1"/><circle cx="19.5" cy="14" r="1"/></svg>`,
-                leaderboard: [
-                    { player: 'Nolan_K', diff: 0.068, reactionTime: 0.715, isUser: false },
-                    { player: 'Emma_L', diff: 0.155, reactionTime: 0.890, isUser: false },
-                    { player: 'Tom_69', diff: 0.290, reactionTime: 1.040, isUser: false }
-                ]
-            },
-            {
-                id: 'dyson',
-                name: 'Dyson Airwrap i.d.',
-                value: '549 €',
-                entryFee: 2.50,
-                currentEntries: 215,
-                maxEntries: 270,
-                speed: 1.60,
-                badge: 'Best-Seller Lifestyle',
-                badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-                svg: `<svg class="w-12 h-12 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3h4v8a2 2 0 01-2 2h0a2 2 0 01-2-2V3z"/><path d="M12 13v8M9 21h6M10 6h4M10 9h4"/></svg>`,
-                leaderboard: [
-                    { player: 'Clara_Beauty', diff: 0.051, reactionTime: 0.695, isUser: false },
-                    { player: 'Lea_Paris', diff: 0.134, reactionTime: 0.840, isUser: false },
-                    { player: 'Manon_33', diff: 0.260, reactionTime: 1.120, isUser: false }
-                ]
-            },
-            {
-                id: 'amazon500',
-                name: 'Carte Cadeau Amazon 500 €',
-                value: '500 €',
-                entryFee: 2.00,
-                currentEntries: 299,
-                maxEntries: 300,
-                speed: 1.65,
-                badge: 'Dernière place (299/300) !',
-                badgeColor: 'bg-neon-green/20 text-neon-green border-neon-green/30',
-                svg: `<svg class="w-12 h-12 text-neon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h4M15 15h2"/></svg>`,
-                leaderboard: [
-                    { player: 'Hugo_Boss', diff: 0.029, reactionTime: 0.640, isUser: false },
-                    { player: 'Yanis_94', diff: 0.088, reactionTime: 0.790, isUser: false },
-                    { player: 'Camille_D', diff: 0.175, reactionTime: 0.930, isUser: false },
-                    { player: 'Romain_V', diff: 0.310, reactionTime: 1.210, isUser: false }
-                ]
-            }
-        ];
+        <!-- Bonus gratuit / Code Promo -->
+        <div class="free-promo-box">
+            <div class="free-promo-title">🎁 Offre Découverte Gratuite (+5.00 € offerts)</div>
+            <div class="promo-input-row">
+                <input type="text" id="promo-code-input" class="promo-input" placeholder="Entrez SKILL5 ou GRATUIT" value="SKILL5">
+                <button class="btn-promo" onclick="claimFreeCredit()">Activer Gratuitement</button>
+            </div>
+            <div id="promo-feedback" style="font-size: 12px; margin-top: 6px; color: var(--text-muted);">
+                Utilisez le code <strong>SKILL5</strong> pour tester gratuitement sans carte bancaire.
+            </div>
+        </div>
 
-        // --- VARIABLES D'ÉTAT DU JEU ---
-        let isPlaying = false;
-        let cursorPosition = 0;
-        let direction = 1;
-        let animationFrameId = null;
-        let lastTimestamp = null;
-        let startTime = 0;
+        <!-- Montants -->
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">1. Sélectionnez un montant :</div>
+        <div class="amount-grid">
+            <div class="amount-btn" onclick="selectAmount(10, 0, this)">10 €<span>Standard</span></div>
+            <div class="amount-btn selected" onclick="selectAmount(20, 2, this)">20 €<span>+2 € offerts</span></div>
+            <div class="amount-btn" onclick="selectAmount(50, 7, this)">50 €<span>+7 € offerts</span></div>
+            <div class="amount-btn" onclick="selectAmount(100, 20, this)">100 €<span>+20 € offerts</span></div>
+        </div>
 
-        // --- FONCTION DE TRI MULTI-CRITÈRES (ÉCART PUIS CHRONO) ---
-        function sortLeaderboard(entries) {
-            return [...entries].sort((a, b) => {
-                // 1. Meilleur écart (le plus proche de 0.000%)
-                if (Math.abs(a.diff - b.diff) >= 0.0001) {
-                    return a.diff - b.diff;
-                }
-                // 2. Départage strict en cas d'égalité : temps de réaction le plus court (s)
-                return a.reactionTime - b.reactionTime;
-            });
-        }
-
-        // --- INITIALISATION ---
-        function init() {
-            prizes.forEach(p => {
-                p.leaderboard = sortLeaderboard(p.leaderboard);
-            });
-            renderPrizes();
-            selectPrize(selectedPrizeId);
-            updateWalletUI();
-            renderAmountOptions();
-            updateConfirmPaymentButton();
-        }
-
-        // --- MISE À JOUR DU PORTEFEUILLE ---
-        function updateWalletUI() {
-            document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2) + ' €';
-        }
-
-        // --- GESTION DE LA MODALE RÈGLEMENT (CGJ) ---
-        function openRulesModal(sectionId) {
-            const modal = document.getElementById('rules-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            if (sectionId) {
-                const target = document.getElementById(sectionId);
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-
-        function closeRulesModal() {
-            const modal = document.getElementById('rules-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // --- GESTION DE LA MODALE RECHARGEMENT & CRÉDITS GRATUITS ---
-        const rechargePacks = [
-            { amount: 10, bonus: 0, label: 'Pack Découverte' },
-            { amount: 20, bonus: 2, label: '+2.00 € Offerts', popular: true },
-            { amount: 50, bonus: 7, label: '+7.00 € Offerts' },
-            { amount: 100, bonus: 20, label: '+20.00 € Offerts' }
-        ];
-        let selectedPackIndex = 1;
-        let selectedPaymentMethod = 'paypal';
-        const usedPromoCodes = new Set();
-
-        function openRechargeModal() {
-            const modal = document.getElementById('recharge-modal');
-            document.getElementById('promo-feedback').classList.add('hidden');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            renderAmountOptions();
-            updateConfirmPaymentButton();
-        }
-
-        function closeRechargeModal() {
-            const modal = document.getElementById('recharge-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        function renderAmountOptions() {
-            const container = document.getElementById('amount-options');
-            container.innerHTML = rechargePacks.map((pack, idx) => {
-                const active = idx === selectedPackIndex;
-                return `
-                <button type="button" onclick="selectRechargePack(${idx})"
-                    class="p-3.5 rounded-xl border text-left transition cursor-pointer relative
-                    ${active ? 'bg-neon-green/15 border-neon-green text-white shadow-[0_0_15px_rgba(0,255,136,0.15)]' : 'bg-dark-900/80 border-white/10 text-zinc-300 hover:border-white/25'}">
-                    <div class="flex items-center justify-between">
-                        <span class="font-mono font-extrabold text-base sm:text-lg ${active ? 'text-neon-green' : 'text-white'}">${pack.amount.toFixed(2)} €</span>
-                        ${pack.popular ? '<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-neon-purple text-white">Populaire</span>' : ''}
+        <!-- Moyens de paiement -->
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px;">2. Moyen de paiement sécurisé :</div>
+        <div class="payment-methods">
+            <div class="method-card selected" onclick="selectMethod('paypal', this)">
+                <div class="method-left">
+                    <span style="font-size: 20px;">🅿️</span>
+                    <div>
+                        <div>PayPal Express</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 400;">Paiement en 1 clic avec protection acheteur</div>
                     </div>
-                    <span class="block text-[11px] mt-1 ${pack.bonus > 0 ? 'text-neon-cyan font-semibold' : 'text-zinc-500'}">
-                        ${pack.label}
-                    </span>
-                </button>
-                `;
-            }).join('');
+                </div>
+                <span class="method-badge">Instantané</span>
+            </div>
+
+            <div class="method-card" onclick="selectMethod('card', this)">
+                <div class="method-left">
+                    <span style="font-size: 20px;">💳</span>
+                    <div>
+                        <div>Carte Bancaire (Visa / Mastercard)</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 400;">Transaction chiffrée 3D-Secure</div>
+                    </div>
+                </div>
+                <span class="method-badge">Sans frais</span>
+            </div>
+
+            <div class="method-card" onclick="selectMethod('apple', this)">
+                <div class="method-left">
+                    <span style="font-size: 20px;">📱</span>
+                    <div>
+                        <div>Apple Pay / Google Pay</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 400;">Validation biométrique rapide</div>
+                    </div>
+                </div>
+                <span class="method-badge">Mobile</span>
+            </div>
+        </div>
+
+        <button class="btn-confirm-pay paypal-style" id="confirm-pay-btn" onclick="processPayment()">
+            Payer 20.00 € avec PayPal (+2.00 € offerts)
+        </button>
+    </div>
+</div>
+
+<!-- Modale Règlement Officiel (CGJ) -->
+<div class="modal-overlay" id="rules-modal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('rules-modal')">✕</button>
+        <div class="modal-title">📜 Règlement Officiel des Jeux (CGJ)</div>
+        <p class="modal-subtitle">Cadre légal des compétitions d'adresse SkillWin — Version 2026</p>
+
+        <div class="rules-section">
+            <h4>Article 1 — Nature du jeu (100 % Adresse, Zéro Hasard)</h4>
+            <p>Les compétitions organisées sur SkillWin sont des jeux d'adresse et de réflexes purs. Aucun tirage au sort ni algorithme aléatoire n'intervient dans la désignation des vainqueurs. Tous les participants d'une même session affrontent une épreuve strictement identique (vitesse de curseur constante et cible fixe à 50.000%).</p>
+        </div>
+
+        <div class="rules-section">
+            <h4>Article 2 — Fonctionnement des paliers et clôture</h4>
+            <p>Chaque lot est associé à un coût de participation unitaire et à un objectif précis de participations (ex. 300 participations pour la Carte Cadeau Amazon 500 €). Dès que la dernière participation est validée, la session est automatiquement clôturée et verrouillée. Si un palier n'est pas atteint sous 30 jours, les participants sont intégralement remboursés sur leur solde.</p>
+        </div>
+
+        <div class="rules-section">
+            <h4>Article 3 — Départage des ex æquo au millième de seconde</h4>
+            <p>Le classement est établi selon l'écart le plus faible par rapport au centre exact (50.000%). En cas d'égalité parfaite d'écart entre deux ou plusieurs joueurs, <strong>le participant ayant réalisé le temps de réaction le plus court (mesuré en millisecondes)</strong> est déclaré vainqueur. À défaut, la première performance enregistrée chronologiquement l'emporte.</p>
+        </div>
+
+        <div class="rules-section">
+            <h4>Article 4 — Attribution et livraison des lots</h4>
+            <p>Les lots sont expédiés neufs, sous scellés et avec garantie constructeur sous 7 jours ouvrés, sans aucuns frais de port pour le vainqueur. Les cartes cadeaux numériques sont envoyées par email sous 24 heures après vérification d'identité (âge minimum requis : 18 ans).</p>
+        </div>
+
+        <div class="rules-section">
+            <h4>Article 5 — Crédits promotionnels gratuits</h4>
+            <p>Chaque nouvel inscrit bénéficie d'un crédit promotionnel gratuit permettant de tester la plateforme sans obligation d'achat. Les gains issus de parties jouées avec des crédits promotionnels sont soumis aux mêmes règles d'adresse et de classement.</p>
+        </div>
+
+        <button class="btn-confirm-pay" onclick="closeModal('rules-modal')">J'ai lu et compris le règlement</button>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-links">
+        <a onclick="openModal('rules-modal')">📜 Règlement Officiel (CGJ)</a>
+        <a onclick="openModal('payment-modal')">💳 Moyens de paiement &amp; Bonus gratuit</a>
+        <a onclick="openModal('rules-modal')">⚖️ Mentions Légales &amp; Jeu Responsable</a>
+    </div>
+    <p>© 2026 SkillWin — Plateforme de compétitions d'adresse en ligne. Réservé aux personnes majeures (+18 ans).</p>
+</footer>
+
+<script>
+    // Données des 5 articles les plus recherchés
+    const prizes = [
+        {
+            id: 'iphone17',
+            name: 'iPhone 17 Pro Max (256 Go)',
+            value: 'Valeur : 1 479 €',
+            tag: '🔥 N°1 Tech',
+            icon: '📱',
+            cost: 5.00,
+            current: 398,
+            max: 400,
+            speed: 1.75,
+            scores: [
+                { player: 'Alex_92', diff: 0.015, time: 0.612 },
+                { player: 'Sarah_K', diff: 0.015, time: 1.485 },
+                { player: 'Mehdi_Pro', diff: 0.082, time: 0.890 },
+                { player: 'Lucas_75', diff: 0.140, time: 1.120 }
+            ]
+        },
+        {
+            id: 'ps5pro',
+            name: 'PlayStation 5 Pro',
+            value: 'Valeur : 799 €',
+            tag: '🎮 N°1 Gaming',
+            icon: '🕹️',
+            cost: 3.00,
+            current: 347,
+            max: 350,
+            speed: 1.65,
+            scores: [
+                { player: 'Kylian_G', diff: 0.024, time: 0.740 },
+                { player: 'Emma_Play', diff: 0.024, time: 1.920 },
+                { player: 'Nico_FR', diff: 0.110, time: 0.650 }
+            ]
+        },
+        {
+            id: 'switch2',
+            name: 'Nintendo Switch 2',
+            value: 'Valeur : 449 €',
+            tag: '⭐ Populaire',
+            icon: '🎮',
+            cost: 2.00,
+            current: 214,
+            max: 280,
+            speed: 1.45,
+            scores: [
+                { player: 'Chloe_M', diff: 0.032, time: 0.815 },
+                { player: 'Tom_S', diff: 0.095, time: 1.340 }
+            ]
+        },
+        {
+            id: 'dyson',
+            name: 'Dyson Airwrap i.d.™',
+            value: 'Valeur : 549 €',
+            tag: '✨ Viral',
+            icon: '💇‍♀️',
+            cost: 2.50,
+            current: 189,
+            max: 270,
+            speed: 1.50,
+            scores: [
+                { player: 'Ines_B', diff: 0.028, time: 0.790 },
+                { player: 'Camille_R', diff: 0.064, time: 1.105 }
+            ]
+        },
+        {
+            id: 'amazon500',
+            name: 'Carte Cadeau Amazon 500 €',
+            value: 'Pouvoir d’achat immédiat',
+            tag: '⚡ Presque plein !',
+            icon: '🎁',
+            cost: 2.00,
+            current: 299,
+            max: 300,
+            speed: 1.55,
+            scores: [
+                { player: 'Maxime_D', diff: 0.045, time: 0.910 },
+                { player: 'Julie_L', diff: 0.045, time: 1.840 },
+                { player: 'Sami_93', diff: 0.130, time: 0.720 }
+            ]
         }
+    ];
 
-        function selectRechargePack(idx) {
-            selectedPackIndex = idx;
-            renderAmountOptions();
-            updateConfirmPaymentButton();
-        }
+    let activePrizeId = 'iphone17';
+    let userBalance = 50.00;
+    let isPlaying = false;
+    let position = 0;
+    let direction = 1;
+    let animationId = null;
+    let startTime = 0;
 
-        function selectPaymentMethod(method) {
-            selectedPaymentMethod = method;
-            const methods = ['paypal', 'card', 'applepay'];
-            methods.forEach(m => {
-                const btn = document.getElementById('pm-' + m);
-                if (m === method) {
-                    if (m === 'paypal') {
-                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-[#0070ba]/20 border-[#38bdf8] text-white';
-                    } else if (m === 'card') {
-                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-neon-green/15 border-neon-green text-white';
-                    } else {
-                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-white/15 border-white text-white';
-                    }
-                } else {
-                    btn.className = 'pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300';
-                }
-            });
-            updateConfirmPaymentButton();
-        }
+    // Variables de paiement
+    let selectedAmount = 20;
+    let selectedBonus = 2;
+    let selectedMethod = 'paypal';
+    let freeCodeUsed = false;
 
-        function updateConfirmPaymentButton() {
-            const pack = rechargePacks[selectedPackIndex];
-            const totalCredit = pack.amount + pack.bonus;
-            const btn = document.getElementById('confirm-payment-btn');
+    // Éléments DOM
+    const prizesGrid = document.getElementById('prizes-grid');
+    const balanceEl = document.getElementById('user-balance');
+    const cursorEl = document.getElementById('cursor');
+    const actionBtn = document.getElementById('action-btn');
+    const resultBox = document.getElementById('result-box');
+    const leaderboardList = document.getElementById('leaderboard-list');
+    const winnerBanner = document.getElementById('winner-banner');
+    const liveChronoEl = document.getElementById('live-chrono');
+    const recordDisplayEl = document.getElementById('record-display');
 
-            if (selectedPaymentMethod === 'paypal') {
-                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-lg flex items-center justify-center gap-2';
-                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € avec PayPal (Recevoir ${totalCredit.toFixed(2)} €)</span>`;
-            } else if (selectedPaymentMethod === 'card') {
-                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-lg flex items-center justify-center gap-2';
-                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € par Carte (Recevoir ${totalCredit.toFixed(2)} €)</span>`;
-            } else {
-                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-white hover:bg-zinc-200 text-dark-950 shadow-lg flex items-center justify-center gap-2';
-                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € via Apple Pay / GPay (${totalCredit.toFixed(2)} €)</span>`;
+    function sortScores(scoresArray) {
+        return scoresArray.sort((a, b) => {
+            if (Math.abs(a.diff - b.diff) > 0.00001) {
+                return a.diff - b.diff;
             }
+            return a.time - b.time;
+        });
+    }
+
+    function getActivePrize() {
+        return prizes.find(p => p.id === activePrizeId);
+    }
+
+    function renderPrizes() {
+        prizesGrid.innerHTML = '';
+        prizes.forEach(prize => {
+            const pct = Math.min(100, (prize.current / prize.max) * 100);
+            const isSelected = prize.id === activePrizeId;
+            const isFull = prize.current >= prize.max;
+
+            const card = document.createElement('div');
+            card.className = `prize-card ${isSelected ? 'active' : ''}`;
+            card.onclick = () => selectPrize(prize.id);
+
+            card.innerHTML = `
+                <div class="hot-tag">${isFull ? '✅ TERMINÉ' : prize.tag}</div>
+                <div class="entry-badge">${prize.cost.toFixed(2)} €</div>
+                <div>
+                    <div class="prize-icon">${prize.icon}</div>
+                    <div class="prize-title">${prize.name}</div>
+                    <div class="prize-value">${prize.value}</div>
+                </div>
+                <div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${pct}%; ${isFull ? 'background: #ff3366;' : ''}"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>${isFull ? 'Clôturé' : 'En cours'}</span>
+                        <strong>${prize.current} / ${prize.max}</strong>
+                    </div>
+                </div>
+            `;
+            prizesGrid.appendChild(card);
+        });
+    }
+
+    function selectPrize(id) {
+        if (isPlaying) return;
+        activePrizeId = id;
+        position = 0;
+        cursorEl.style.left = '0%';
+        liveChronoEl.textContent = '0.000 s';
+        resultBox.innerHTML = '<span style="color: var(--text-muted); font-size: 14px;">Prêt à tenter votre chance ? Vos scores sont enregistrés instantanément.</span>';
+        updateArena();
+        renderPrizes();
+    }
+
+    function updateArena() {
+        const prize = getActivePrize();
+        sortScores(prize.scores);
+        const isFull = prize.current >= prize.max;
+
+        document.getElementById('active-prize-name').textContent = `${prize.icon} ${prize.name}`;
+        document.getElementById('active-prize-sub').textContent = `Mise : ${prize.cost.toFixed(2)} € • Palier : ${prize.max} participations`;
+        
+        const statusPill = document.getElementById('session-status');
+        statusPill.textContent = isFull ? `CLÔTURÉ (${prize.current}/${prize.max})` : `EN COURS (${prize.current}/${prize.max})`;
+        statusPill.className = `status-pill ${isFull ? 'closed' : ''}`;
+
+        if (prize.scores.length > 0) {
+            const best = prize.scores[0];
+            recordDisplayEl.textContent = `${best.diff.toFixed(3)}% (${best.time.toFixed(3)}s)`;
+        } else {
+            recordDisplayEl.textContent = 'Aucun score';
         }
 
-        function fillPromoCode(code) {
-            document.getElementById('promo-code-input').value = code;
+        if (isFull) {
+            actionBtn.disabled = true;
+            actionBtn.textContent = 'Session terminée (Palier atteint)';
+            actionBtn.className = 'btn-play';
+            
+            const winner = prize.scores[0];
+            winnerBanner.classList.add('show');
+            document.getElementById('winner-announcement').innerHTML = 
+                `<strong>${winner.player}</strong> remporte le lot <strong>${prize.name}</strong> avec un écart de <strong>${winner.diff.toFixed(3)}%</strong> en <strong>${winner.time.toFixed(3)}s</strong> !`;
+        } else {
+            actionBtn.disabled = false;
+            actionBtn.textContent = `Miser ${prize.cost.toFixed(2)} € et Jouer`;
+            actionBtn.className = 'btn-play';
+            winnerBanner.classList.remove('show');
         }
 
-        function applyPromoCode() {
-            const input = document.getElementById('promo-code-input');
-            const feedback = document.getElementById('promo-feedback');
-            const code = input.value.trim().toUpperCase();
+        leaderboardList.innerHTML = '';
+        prize.scores.forEach((entry, index) => {
+            const li = document.createElement('li');
+            li.className = `leaderboard-item ${index === 0 ? 'top-1' : ''}`;
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+            
+            const hasSameScore = prize.scores.some((other, otherIdx) => 
+                otherIdx !== index && Math.abs(other.diff - entry.diff) < 0.00001
+            );
+            const tieBadge = hasSameScore ? `<span class="tie-badge">⚡ Départagé au chrono</span>` : '';
 
-            feedback.classList.remove('hidden', 'text-neon-green', 'text-neon-pink');
+            li.innerHTML = `
+                <div class="player-info">
+                    <span class="rank">${medal}</span>
+                    <span><strong>${entry.player}</strong> ${entry.player === 'Vous' ? '(Moi)' : ''}${tieBadge}</span>
+                </div>
+                <div class="score-details">
+                    <span class="score-val">Écart : ${entry.diff.toFixed(3)}%</span>
+                    <span class="time-val">⏱️ ${entry.time.toFixed(3)} s</span>
+                </div>
+            `;
+            leaderboardList.appendChild(li);
+        });
+    }
 
-            if (!code) {
-                feedback.textContent = 'Veuillez saisir un code promotionnel (ex: APEX5).';
-                feedback.classList.add('text-neon-pink');
+    function animateCursor(now) {
+        if (!isPlaying) return;
+        const prize = getActivePrize();
+
+        const elapsedSec = ((now - startTime) / 1000).toFixed(3);
+        liveChronoEl.textContent = `${elapsedSec} s`;
+
+        position += prize.speed * direction;
+        if (position >= 100) {
+            position = 100;
+            direction = -1;
+        } else if (position <= 0) {
+            position = 0;
+            direction = 1;
+        }
+
+        cursorEl.style.left = position + '%';
+        animationId = requestAnimationFrame(animateCursor);
+    }
+
+    function handleGameAction() {
+        const prize = getActivePrize();
+
+        if (!isPlaying) {
+            if (prize.current >= prize.max) return;
+            if (userBalance < prize.cost) {
+                resultBox.innerHTML = `<span style="color: var(--danger);">Solde insuffisant (${userBalance.toFixed(2)} €). Cliquez sur "+ Recharger" en haut.</span>`;
                 return;
             }
 
-            if (code === 'APEX5' || code === 'GRATUIT') {
-                if (usedPromoCodes.has(code)) {
-                    feedback.textContent = `Le code ${code} a déjà été activé sur ce compte.`;
-                    feedback.classList.add('text-neon-pink');
-                    return;
-                }
-                usedPromoCodes.add(code);
-                walletBalance += 5.00;
-                updateWalletUI();
-                feedback.textContent = `✅ Code ${code} validé ! +5.00 € de crédits gratuits ajoutés à votre solde.`;
-                feedback.classList.add('text-neon-green');
-                showFeedback(`🎁 Bonus sans achat : +5.00 € crédités gratuitement avec le code <strong>${code}</strong> !`, 'success');
-            } else {
-                feedback.textContent = 'Code invalide. Essayez le code promotionnel APEX5 ou GRATUIT.';
-                feedback.classList.add('text-neon-pink');
-            }
-        }
+            userBalance -= prize.cost;
+            balanceEl.textContent = userBalance.toFixed(2) + ' €';
 
-        function processSimulatedPayment() {
-            const pack = rechargePacks[selectedPackIndex];
-            const totalCredit = pack.amount + pack.bonus;
-            const btn = document.getElementById('confirm-payment-btn');
-            const providerLabel = selectedPaymentMethod === 'paypal' ? 'PayPal' : selectedPaymentMethod === 'card' ? 'Carte Bancaire' : 'Apple Pay / Google Pay';
-
-            btn.disabled = true;
-            btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span><span>Connexion sécurisée ${providerLabel}...</span>`;
-
-            setTimeout(() => {
-                btn.disabled = false;
-                walletBalance += totalCredit;
-                updateWalletUI();
-                closeRechargeModal();
-                showFeedback(`✅ Paiement ${providerLabel} validé ! <strong>+${totalCredit.toFixed(2)} €</strong> ajoutés à votre portefeuille.`, 'success');
-            }, 900);
-        }
-
-        // --- AFFICHAGE DES LOTS ---
-        function renderPrizes() {
-            const grid = document.getElementById('prizes-grid');
-            grid.innerHTML = prizes.map(prize => {
-                const isSelected = prize.id === selectedPrizeId;
-                const percent = Math.min(100, Math.round((prize.currentEntries / prize.maxEntries) * 100));
-                const remaining = prize.maxEntries - prize.currentEntries;
-
-                return `
-                <div onclick="selectPrize('${prize.id}')" 
-                     class="glass-panel rounded-2xl p-5 cursor-pointer transition-all duration-200 relative overflow-hidden group
-                     ${isSelected ? 'ring-2 ring-neon-green bg-dark-800/90 shadow-[0_0_25px_rgba(0,255,136,0.15)]' : 'hover:border-white/25 hover:bg-dark-800/60'}">
-                    
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="text-[11px] font-bold px-2.5 py-1 rounded-full border ${prize.badgeColor}">
-                            ${prize.badge}
-                        </span>
-                        <span class="text-xs font-semibold text-zinc-400">Valeur : <strong class="text-white">${prize.value}</strong></span>
-                    </div>
-
-                    <div class="flex items-center gap-4 mb-5">
-                        <div class="w-16 h-16 rounded-xl bg-dark-950/90 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                            ${prize.svg}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-white text-base sm:text-lg leading-tight">${prize.name}</h3>
-                            <p class="text-xs text-zinc-400 mt-1">Record : <span class="font-mono text-neon-cyan font-bold">${prize.leaderboard[0].diff.toFixed(3)}%</span> <span class="text-zinc-500">(${prize.leaderboard[0].reactionTime.toFixed(3)}s)</span></p>
-                        </div>
-                    </div>
-
-                    <!-- Jauge de progression -->
-                    <div class="space-y-1.5 mb-4">
-                        <div class="flex justify-between text-xs">
-                            <span class="text-zinc-400">Participations : <strong class="text-white font-mono">${prize.currentEntries}/${prize.maxEntries}</strong></span>
-                            <span class="font-mono font-bold ${remaining <= 5 ? 'text-neon-pink animate-pulse' : 'text-neon-green'}">
-                                ${remaining === 0 ? 'COMPLET' : `Plus que ${remaining} !`}
-                            </span>
-                        </div>
-                        <div class="w-full h-2.5 bg-dark-950 rounded-full overflow-hidden p-0.5 border border-white/5">
-                            <div class="h-full rounded-full transition-all duration-500 ${remaining <= 5 ? 'bg-gradient-to-r from-neon-purple to-neon-pink' : 'bg-gradient-to-r from-neon-cyan to-neon-green'}" 
-                                 style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="pt-3 border-t border-white/10 flex items-center justify-between">
-                        <span class="text-xs text-zinc-400">Mise : <strong class="text-white font-mono">${prize.entryFee.toFixed(2)} €</strong></span>
-                        <span class="font-bold text-xs px-3 py-1.5 rounded-lg transition-colors ${isSelected ? 'bg-neon-green text-dark-950' : 'bg-dark-950 text-white border border-white/15 group-hover:border-neon-green/50'}">
-                            ${isSelected ? '✓ Sélectionné' : 'Sélectionner ce lot'}
-                        </span>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        // --- SÉLECTION D'UN LOT ---
-        function selectPrize(prizeId) {
-            if (isPlaying) return; // Empêcher de changer en pleine partie
-            selectedPrizeId = prizeId;
-            const prize = prizes.find(p => p.id === prizeId);
-            prize.leaderboard = sortLeaderboard(prize.leaderboard);
-
-            // Mise à jour de l'arène
-            document.getElementById('active-prize-title').textContent = prize.name;
-            document.getElementById('active-prize-record').textContent = `${prize.leaderboard[0].diff.toFixed(3)}% (${prize.leaderboard[0].reactionTime.toFixed(3)}s)`;
-            document.getElementById('leaderboard-count').textContent = `${prize.currentEntries} / ${prize.maxEntries}`;
-            
-            // Réinitialisation visuelle du jeu
-            cursorPosition = 0;
+            isPlaying = true;
+            position = 0;
             direction = 1;
-            document.getElementById('game-cursor').style.left = '0%';
-            document.getElementById('live-position').textContent = '0.000%';
-            document.getElementById('live-timer').textContent = '0.000 s';
-            document.getElementById('live-diff').textContent = '—';
-            document.getElementById('live-diff').className = 'font-mono font-bold text-base sm:text-lg text-zinc-500';
-            document.getElementById('feedback-box').classList.add('hidden');
+            startTime = performance.now();
+            
+            actionBtn.textContent = 'STOP ! (Cliquez pour figer)';
+            actionBtn.classList.add('stop-mode');
+            resultBox.innerHTML = '<span style="color: var(--primary);">Visez le centre vert (50.000%) le plus vite possible !</span>';
 
-            // Bouton principal (bloqué si session déjà complète)
-            const playBtn = document.getElementById('play-btn');
-            if (prize.currentEntries >= prize.maxEntries) {
-                playBtn.disabled = true;
-                playBtn.textContent = `Session Clôturée (${prize.maxEntries}/${prize.maxEntries})`;
-                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase bg-dark-800 text-zinc-500 border border-white/10 cursor-not-allowed";
-                const winner = prize.leaderboard[0];
-                showFeedback(`🏆 Lot remporté par <strong>${winner.player}</strong> (Écart : ${winner.diff.toFixed(3)}% en ${winner.reactionTime.toFixed(3)} s). Sélectionnez un autre lot ouvert ci-dessus !`, 'info');
-            } else {
-                playBtn.disabled = false;
-                playBtn.textContent = `Miser ${prize.entryFee.toFixed(2)} € et Jouer`;
-                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)] active:scale-[0.99]";
-            }
-
-            renderPrizes();
-            renderLeaderboard(prize);
-        }
-
-        // --- AFFICHAGE DU CLASSEMENT ---
-        function renderLeaderboard(prize) {
-            const list = document.getElementById('leaderboard-list');
-            const sorted = sortLeaderboard(prize.leaderboard);
-
-            list.innerHTML = sorted.map((entry, index) => {
-                const isFirst = index === 0;
-                const isUser = entry.isUser;
-                
-                // Vérifier s'il y a un ex æquo sur l'écart avec le voisin précédent ou suivant
-                const prevSame = index > 0 && Math.abs(sorted[index - 1].diff - entry.diff) < 0.0001;
-                const nextSame = index < sorted.length - 1 && Math.abs(sorted[index + 1].diff - entry.diff) < 0.0001;
-                const isTieBroken = prevSame || nextSame;
-                
-                return `
-                <div class="grid grid-cols-12 items-center p-3 rounded-xl border transition-all
-                    ${isFirst ? 'bg-neon-green/10 border-neon-green/40' : isUser ? 'bg-neon-purple/15 border-neon-purple/40' : 'bg-dark-900/70 border-white/5'}">
-                    
-                    <div class="col-span-2 flex items-center">
-                        <span class="w-6 h-6 rounded-lg flex items-center justify-center font-mono font-bold text-xs
-                            ${isFirst ? 'bg-neon-green text-dark-950' : 'bg-dark-800 text-zinc-400'}">
-                            #${index + 1}
-                        </span>
-                    </div>
-
-                    <div class="col-span-5 pr-1">
-                        <p class="text-xs sm:text-sm font-bold truncate ${isUser ? 'text-neon-cyan' : 'text-white'} flex items-center gap-1">
-                            <span>${entry.player}</span>
-                            ${isFirst ? '<span title="En tête pour remporter le lot">👑</span>' : ''}
-                        </p>
-                        ${isTieBroken ? `
-                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 mt-0.5">
-                                ⚡ Départagé au chrono
-                            </span>
-                        ` : ''}
-                    </div>
-
-                    <div class="col-span-3 text-right">
-                        <span class="font-mono font-bold text-xs sm:text-sm ${isFirst ? 'text-neon-green' : 'text-zinc-200'}">
-                            ${entry.diff.toFixed(3)}%
-                        </span>
-                    </div>
-
-                    <div class="col-span-2 text-right">
-                        <span class="font-mono font-semibold text-xs ${isTieBroken ? 'text-neon-cyan font-bold' : 'text-zinc-400'}">
-                            ${entry.reactionTime.toFixed(3)}s
-                        </span>
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        // --- MÉCANIQUE DU JEU D'ADRESSE ---
-        function toggleGame() {
-            const prize = prizes.find(p => p.id === selectedPrizeId);
-            const playBtn = document.getElementById('play-btn');
-
-            if (prize.currentEntries >= prize.maxEntries) return;
-
-            if (!isPlaying) {
-                // Vérification du solde
-                if (walletBalance < prize.entryFee) {
-                    showFeedback('❌ Solde insuffisant ! Cliquez sur le bouton "+ Recharger" en haut pour ajouter des crédits.', 'error');
-                    return;
-                }
-
-                // Débit de la mise
-                walletBalance -= prize.entryFee;
-                updateWalletUI();
-
-                // Lancement de la partie
-                isPlaying = true;
-                cursorPosition = 0;
-                direction = 1;
-                startTime = performance.now();
-                lastTimestamp = startTime;
-                
-                document.getElementById('feedback-box').classList.add('hidden');
-                document.getElementById('live-timer').textContent = '0.000 s';
-                document.getElementById('live-diff').textContent = 'En cours...';
-                document.getElementById('live-diff').className = 'font-mono font-bold text-base sm:text-lg text-neon-cyan animate-pulse';
-
-                playBtn.textContent = '🛑 STOP ! (Cliquez pour arrêter)';
-                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-75 cursor-pointer bg-neon-pink hover:bg-[#ff1a75] text-white shadow-[0_0_25px_rgba(255,42,133,0.5)] scale-[1.01]";
-
-                animationFrameId = requestAnimationFrame(gameLoop);
-            } else {
-                // Arrêt du curseur
-                stopGame(prize);
-            }
-        }
-
-        function gameLoop(timestamp) {
-            if (!isPlaying) return;
-
-            const prize = prizes.find(p => p.id === selectedPrizeId);
-            // Mouvement fluide indépendant du taux de rafraîchissement écran
-            const delta = (timestamp - lastTimestamp) / 16.67;
-            lastTimestamp = timestamp;
-
-            cursorPosition += prize.speed * direction * delta;
-
-            if (cursorPosition >= 100) {
-                cursorPosition = 100;
-                direction = -1;
-            } else if (cursorPosition <= 0) {
-                cursorPosition = 0;
-                direction = 1;
-            }
-
-            const elapsedSeconds = (timestamp - startTime) / 1000;
-            document.getElementById('game-cursor').style.left = cursorPosition + '%';
-            document.getElementById('live-position').textContent = cursorPosition.toFixed(3) + '%';
-            document.getElementById('live-timer').textContent = elapsedSeconds.toFixed(3) + ' s';
-
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function stopGame(prize) {
-            const stopTimestamp = performance.now();
+            animationId = requestAnimationFrame(animateCursor);
+        } else {
             isPlaying = false;
-            cancelAnimationFrame(animationFrameId);
+            cancelAnimationFrame(animationId);
 
-            // Calcul précis de l'écart par rapport à 50.000% et du temps de réaction en secondes
-            const exactDiff = parseFloat(Math.abs(50.000 - cursorPosition).toFixed(3));
-            const exactReactionTime = parseFloat(((stopTimestamp - startTime) / 1000).toFixed(3));
+            const reactionTime = parseFloat(((performance.now() - startTime) / 1000).toFixed(3));
+            liveChronoEl.textContent = `${reactionTime.toFixed(3)} s`;
 
-            // Affichage télémétrie
-            document.getElementById('live-timer').textContent = exactReactionTime.toFixed(3) + ' s';
-            const diffEl = document.getElementById('live-diff');
-            diffEl.textContent = exactDiff.toFixed(3) + '%';
+            const diff = parseFloat(Math.abs(50 - position).toFixed(3));
             
-            const bestBefore = prize.leaderboard[0];
-            const beatsRecord = (exactDiff < bestBefore.diff) || 
-                                (Math.abs(exactDiff - bestBefore.diff) < 0.0001 && exactReactionTime < bestBefore.reactionTime);
+            prize.current++;
+            prize.scores.push({ player: 'Vous', diff: diff, time: reactionTime });
+            sortScores(prize.scores);
 
-            if (beatsRecord) {
-                diffEl.className = 'font-mono font-extrabold text-base sm:text-lg text-neon-green';
+            const isFirst = prize.scores[0].player === 'Vous' && prize.scores[0].diff === diff && prize.scores[0].time === reactionTime;
+            
+            let msg = `Votre écart : <strong>${diff.toFixed(3)}%</strong> • Temps : <strong>${reactionTime.toFixed(3)} s</strong><br>`;
+            if (isFirst) {
+                msg += `<span style="color: var(--accent); font-weight: bold;">🔥 INCROYABLE ! Vous prenez la 1ʳᵉ place du classement !</span>`;
             } else {
-                diffEl.className = 'font-mono font-bold text-base sm:text-lg text-neon-pink';
+                msg += `<span style="color: var(--warning);">Vous êtes classé #${prize.scores.findIndex(s => s.player === 'Vous' && s.time === reactionTime) + 1}. Le record est de ${prize.scores[0].diff.toFixed(3)}% (${prize.scores[0].time.toFixed(3)}s).</span>`;
             }
+            resultBox.innerHTML = msg;
 
-            // Enregistrement de la participation
-            prize.currentEntries++;
-            prize.leaderboard.push({
-                player: 'Joueur_Pro (Vous)',
-                diff: exactDiff,
-                reactionTime: exactReactionTime,
-                isUser: true
-            });
-            prize.leaderboard = sortLeaderboard(prize.leaderboard);
-
-            // Mise à jour de l'interface
-            const newBest = prize.leaderboard[0];
-            document.getElementById('active-prize-record').textContent = `${newBest.diff.toFixed(3)}% (${newBest.reactionTime.toFixed(3)}s)`;
-            document.getElementById('leaderboard-count').textContent = `${prize.currentEntries} / ${prize.maxEntries}`;
             renderPrizes();
-            renderLeaderboard(prize);
+            updateArena();
+        }
+    }
 
-            // Réinitialisation du bouton
-            const playBtn = document.getElementById('play-btn');
-            playBtn.textContent = `Rejouer (${prize.entryFee.toFixed(2)} €)`;
-            playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)]";
+    // Gestion des Modales (Paiement & Règlement)
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.add('open');
+    }
 
-            // Message de feedback
-            if (beatsRecord) {
-                showFeedback(`🔥 NOUVEAU RECORD ! Écart : <strong>${exactDiff.toFixed(3)}%</strong> en <strong>${exactReactionTime.toFixed(3)} s</strong> ! Vous prenez la 1ère place !`, 'success');
-            } else {
-                showFeedback(`🎯 Score : <strong>${exactDiff.toFixed(3)}%</strong> en <strong>${exactReactionTime.toFixed(3)} s</strong> (Record : ${newBest.diff.toFixed(3)}% en ${newBest.reactionTime.toFixed(3)} s).`, 'warning');
-            }
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('open');
+    }
 
-            // Vérification si la jauge est pleine
-            if (prize.currentEntries >= prize.maxEntries) {
-                playBtn.disabled = true;
-                playBtn.textContent = `Session Clôturée (${prize.maxEntries}/${prize.maxEntries})`;
-                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase bg-dark-800 text-zinc-500 border border-white/10 cursor-not-allowed";
-                triggerSessionCompletion(prize);
-            }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('open');
+        }
+    };
+
+    function selectAmount(amount, bonus, el) {
+        selectedAmount = amount;
+        selectedBonus = bonus;
+        document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('selected'));
+        el.classList.add('selected');
+        updatePayButtonText();
+    }
+
+    function selectMethod(method, el) {
+        selectedMethod = method;
+        document.querySelectorAll('.method-card').forEach(card => card.classList.remove('selected'));
+        el.classList.add('selected');
+        updatePayButtonText();
+    }
+
+    function updatePayButtonText() {
+        const btn = document.getElementById('confirm-pay-btn');
+        const bonusTxt = selectedBonus > 0 ? ` (+${selectedBonus.toFixed(2)} € offerts)` : '';
+        
+        if (selectedMethod === 'paypal') {
+            btn.className = 'btn-confirm-pay paypal-style';
+            btn.textContent = `Payer ${selectedAmount.toFixed(2)} € avec PayPal${bonusTxt}`;
+        } else if (selectedMethod === 'card') {
+            btn.className = 'btn-confirm-pay';
+            btn.textContent = `Payer ${selectedAmount.toFixed(2)} € par Carte Bancaire${bonusTxt}`;
+        } else {
+            btn.className = 'btn-confirm-pay';
+            btn.textContent = `Payer ${selectedAmount.toFixed(2)} € avec Apple / Google Pay${bonusTxt}`;
+        }
+    }
+
+    function claimFreeCredit() {
+        const input = document.getElementById('promo-code-input').value.trim().toUpperCase();
+        const feedback = document.getElementById('promo-feedback');
+
+        if (freeCodeUsed) {
+            feedback.innerHTML = `<span style="color: var(--warning);">⚠️ Vous avez déjà utilisé votre crédit découverte gratuit sur ce compte.</span>`;
+            return;
         }
 
-        // --- DÉCLENCHEMENT AUTOMATIQUE DE FIN DE SESSION ---
-        function triggerSessionCompletion(prize) {
-            const winner = prize.leaderboard[0];
-            const modal = document.getElementById('winner-modal');
-            
-            document.getElementById('modal-desc').textContent = `L'objectif des ${prize.maxEntries} participations pour "${prize.name}" a été atteint ! Le classement est figé.`;
-            document.getElementById('modal-winner-name').textContent = winner.player;
-            document.getElementById('modal-winner-score').textContent = `Écart : ${winner.diff.toFixed(3)}% • Temps de réaction : ${winner.reactionTime.toFixed(3)} s`;
-
-            const resetBtn = modal.querySelector('button');
-            resetBtn.textContent = `Lancer une nouvelle session (0/${prize.maxEntries})`;
-
-            if (winner.isUser) {
-                document.getElementById('modal-icon').textContent = '🎉';
-                document.getElementById('modal-title').textContent = 'FÉLICITATIONS, VOUS AVEZ GAGNÉ !';
-            } else {
-                document.getElementById('modal-icon').textContent = '🏆';
-                document.getElementById('modal-title').textContent = 'Session Terminée !';
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        if (input === 'SKILL5' || input === 'GRATUIT') {
+            freeCodeUsed = true;
+            userBalance += 5.00;
+            balanceEl.textContent = userBalance.toFixed(2) + ' €';
+            feedback.innerHTML = `<span style="color: var(--accent); font-weight: bold;">✅ Code validé ! +5.00 € gratuits ajoutés à votre solde.</span>`;
+        } else {
+            feedback.innerHTML = `<span style="color: var(--danger);">❌ Code invalide. Essayez <strong>SKILL5</strong> ou <strong>GRATUIT</strong>.</span>`;
         }
+    }
 
-        function resetCompletedSession() {
-            const prize = prizes.find(p => p.id === selectedPrizeId);
-            prize.currentEntries = 0;
-            prize.leaderboard = [
-                { player: 'Bot_Calibration', diff: 0.250, reactionTime: 1.500, isUser: false }
-            ];
-            
-            document.getElementById('winner-modal').classList.add('hidden');
-            document.getElementById('winner-modal').classList.remove('flex');
-            selectPrize(prize.id);
-        }
+    function processPayment() {
+        const totalAdded = selectedAmount + selectedBonus;
+        userBalance += totalAdded;
+        balanceEl.textContent = userBalance.toFixed(2) + ' €';
+        
+        closeModal('payment-modal');
+        resultBox.innerHTML = `<span style="color: var(--accent); font-weight: bold;">✅ Paiement validé ! +${totalAdded.toFixed(2)} € ajoutés à votre solde SkillWin.</span>`;
+    }
 
-        // --- UTILITAIRE DE NOTIFICATION ---
-        function showFeedback(htmlMessage, type) {
-            const box = document.getElementById('feedback-box');
-            box.innerHTML = htmlMessage;
-            box.classList.remove('hidden', 'bg-neon-green/15', 'border-neon-green/40', 'text-neon-green', 'bg-neon-pink/15', 'border-neon-pink/40', 'text-neon-pink', 'bg-amber-500/15', 'border-amber-500/40', 'text-amber-300', 'bg-neon-cyan/15', 'border-neon-cyan/40', 'text-neon-cyan');
+    // Initialisation au chargement
+    renderPrizes();
+    updateArena();
+</script>
 
-            if (type === 'success') {
-                box.classList.add('bg-neon-green/15', 'border-neon-green/40', 'text-neon-green');
-            } else if (type === 'error') {
-                box.classList.add('bg-neon-pink/15', 'border-neon-pink/40', 'text-neon-pink');
-            } else if (type === 'info') {
-                box.classList.add('bg-neon-cyan/15', 'border-neon-cyan/40', 'text-neon-cyan');
-            } else {
-                box.classList.add('bg-amber-500/15', 'border-amber-500/40', 'text-amber-300');
-            }
-        }
-
-        // Démarrage
-        window.onload = init;
-    </script>
 </body>
 </html>
