@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApexWin — Gagnez des Lots par votre Adresse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: {
+                            950: '#09090b',
+                            900: '#121216',
+                            800: '#1c1c22',
+                            700: '#27272f',
+                        },
+                        neon: {
+                            green: '#00ff88',
+                            purple: '#9d4edd',
+                            pink: '#ff2a85',
+                            cyan: '#00f0ff'
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 10px rgba(0, 255, 136, 0.2)' },
+                            '100%': { boxShadow: '0 0 25px rgba(0, 255, 136, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #09090b;
+            color: #f4f4f5;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(157, 78, 221, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 255, 136, 0.08) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        /* Effet verre dépoli */
+        .glass-panel {
+            background: rgba(24, 24, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Piste du jeu d'adresse */
+        .game-track {
+            background: linear-gradient(90deg, 
+                rgba(255,42,133,0.15) 0%, 
+                rgba(157,78,221,0.15) 35%, 
+                rgba(0,255,136,0.25) 50%, 
+                rgba(157,78,221,0.15) 65%, 
+                rgba(255,42,133,0.15) 100%);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .cursor-glow {
+            box-shadow: 0 0 15px #ff2a85, 0 0 30px #ff2a85;
+        }
+
+        .target-glow {
+            box-shadow: 0 0 12px #00ff88, 0 0 25px #00ff88;
+        }
+
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121216;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272f;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-neon-green selection:text-dark-950">
+
+    <!-- Barre de Navigation Supérieure -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green to-neon-purple p-[2px]">
+                    <div class="w-full h-full bg-dark-950 rounded-[10px] flex items-center justify-center">
+                        <svg class="w-6 h-6 text-neon-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-black text-xl tracking-tight text-white">APEX<span class="text-neon-green">WIN</span></span>
+                    <span class="hidden sm:inline-block ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neon-purple/20 text-neon-purple border border-neon-purple/30">100% Adresse • Zéro Hasard</span>
+                </div>
+            </div>
+
+            <!-- Portefeuille & Utilisateur -->
+            <div class="flex items-center gap-2.5 sm:gap-4">
+                <button onclick="openRulesModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-900 hover:bg-dark-800 border border-white/10 hover:border-neon-cyan/40 text-xs sm:text-sm font-semibold text-zinc-200 transition cursor-pointer">
+                    <span>📜</span>
+                    <span>Règlement</span>
+                </button>
+
+                <div class="flex items-center gap-2 bg-dark-900 border border-white/10 rounded-xl px-3 py-1.5">
+                    <div class="flex flex-col text-right">
+                        <span class="text-[10px] text-zinc-400 uppercase font-semibold">Solde Disponible</span>
+                        <span id="wallet-balance" class="font-mono font-bold text-neon-green text-sm sm:text-base">50.00 €</span>
+                    </div>
+                    <button onclick="openRechargeModal()" title="Recharger votre portefeuille ou activer un bonus gratuit" class="ml-1 px-2.5 h-7 rounded-lg bg-neon-green/15 hover:bg-neon-green/30 text-neon-green flex items-center justify-center transition cursor-pointer font-bold text-xs gap-1">
+                        <span>+ Recharger</span>
+                    </button>
+                </div>
+
+                <div class="hidden md:flex items-center gap-2.5 pl-2 border-l border-white/10">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center font-bold text-xs text-dark-950">
+                        JP
+                    </div>
+                    <span class="text-sm font-medium text-zinc-200">Joueur_Pro</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+        <!-- Section 1 : Vitrine des Lots -->
+        <section>
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-6">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Compétitions en Cours</h1>
+                    <p class="text-sm text-zinc-400 mt-1">Sélectionnez un lot et battez le record d'adresse avant la fin des participations.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-zinc-400 bg-dark-900/80 px-3 py-1.5 rounded-lg border border-white/5 self-start sm:self-auto">
+                    <span class="w-2 h-2 rounded-full bg-neon-green animate-ping"></span>
+                    <span>Sessions actives en temps réel</span>
+                </div>
+            </div>
+
+            <!-- Grille des 5 Lots -->
+            <div id="prizes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Généré dynamiquement par JS -->
+            </div>
+        </section>
+
+        <!-- Section 2 : Arène de Jeu & Classement en Direct -->
+        <section id="arena-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Colonne Gauche : Le Mini-Jeu d'Adresse (7 colonnes) -->
+            <div class="lg:col-span-7 glass-panel rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+                <!-- Badge Anti-triche -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-6 pb-4 border-b border-white/10">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-neon-green">Arène d'Adresse</span>
+                        <h2 id="active-prize-title" class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">iPhone 17 Pro Max (256 Go)</h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-zinc-400 block">Record à battre</span>
+                        <span id="active-prize-record" class="font-mono font-extrabold text-lg text-neon-cyan">0.015% (0.612s)</span>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-dark-950/80 rounded-xl p-4 border border-white/5 mb-6 flex items-center justify-between gap-4">
+                    <div class="text-xs sm:text-sm text-zinc-300">
+                        <strong class="text-white">Règle :</strong> Arrêtez le curseur rouge exactement sur la ligne verte (<span class="font-mono text-neon-green">50.000%</span>). En cas d'égalité, le temps le plus rapide (<span class="font-mono text-neon-cyan">s</span>) l'emporte.
+                    </div>
+                </div>
+
+                <!-- Piste du Jeu -->
+                <div class="relative my-8 select-none">
+                    <!-- Indicateurs gradués -->
+                    <div class="flex justify-between text-[11px] font-mono text-zinc-500 mb-2 px-1">
+                        <span>0.00%</span>
+                        <span>25.00%</span>
+                        <span class="text-neon-green font-bold">CIBLE (50.000%)</span>
+                        <span>75.00%</span>
+                        <span>100.00%</span>
+                    </div>
+
+                    <!-- Barre de jeu -->
+                    <div class="relative w-full h-16 sm:h-20 game-track rounded-2xl border-2 border-white/15 overflow-hidden">
+                        <!-- Zone de précision visuelle -->
+                        <div class="absolute left-1/2 top-0 bottom-0 w-16 -translate-x-1/2 bg-neon-green/10 border-x border-neon-green/20"></div>
+                        
+                        <!-- Ligne Cible Exacte (50%) -->
+                        <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-neon-green -translate-x-1/2 z-10 target-glow"></div>
+
+                        <!-- Curseur Mobile -->
+                        <div id="game-cursor" class="absolute left-0 top-0 bottom-0 w-1.5 bg-neon-pink -translate-x-1/2 z-20 cursor-glow transition-none" style="left: 0%;">
+                            <div class="w-4 h-4 rounded-full bg-neon-pink border-2 border-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-md"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Télémétrie en direct -->
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
+                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Position</span>
+                        <span id="live-position" class="font-mono font-bold text-base sm:text-lg text-white">0.000%</span>
+                    </div>
+                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
+                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Chrono Réaction</span>
+                        <span id="live-timer" class="font-mono font-bold text-base sm:text-lg text-neon-cyan">0.000 s</span>
+                    </div>
+                    <div class="bg-dark-950/90 p-3 rounded-xl border border-white/5 text-center">
+                        <span class="text-[10px] sm:text-xs text-zinc-400 uppercase block">Écart Cible</span>
+                        <span id="live-diff" class="font-mono font-bold text-base sm:text-lg text-zinc-500">—</span>
+                    </div>
+                </div>
+
+                <!-- Bouton d'action principal -->
+                <button id="play-btn" onclick="toggleGame()" class="w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)] active:scale-[0.99]">
+                    Miser 5.00 € et Jouer
+                </button>
+
+                <!-- Zone de résultat / Notification -->
+                <div id="feedback-box" class="hidden mt-5 p-4 rounded-xl border text-center text-sm font-medium transition-all"></div>
+
+                <!-- Pied technique -->
+                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] text-zinc-500">
+                    <span>Vitesse constante calibrée</span>
+                    <span>Anti-triche Serveur</span>
+                </div>
+            </div>
+
+            <!-- Colonne Droite : Classement en Direct (5 colonnes) -->
+            <div class="lg:col-span-5 glass-panel rounded-2xl p-6 flex flex-col">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                            <span>🏆 Classement en Direct</span>
+                        </h3>
+                        <p class="text-xs text-zinc-400 mt-0.5">Trié par écart, puis départagé au millième de seconde</p>
+                    </div>
+                    <span id="leaderboard-count" class="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-dark-950 text-neon-green border border-neon-green/20">
+                        398 / 400
+                    </span>
+                </div>
+
+                <!-- En-tête colonnes -->
+                <div class="grid grid-cols-12 text-[11px] font-bold uppercase tracking-wider text-zinc-500 px-3 pb-2">
+                    <div class="col-span-2">Rang</div>
+                    <div class="col-span-5">Joueur</div>
+                    <div class="col-span-3 text-right">Écart</div>
+                    <div class="col-span-2 text-right">Chrono</div>
+                </div>
+
+                <!-- Liste des scores -->
+                <div id="leaderboard-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                    <!-- Généré dynamiquement par JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pied de Page (Footer) -->
+    <footer class="border-t border-white/10 bg-dark-950/90 mt-16 py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+            <div class="flex items-center gap-2">
+                <span class="font-black text-sm text-white">APEX<span class="text-neon-green">WIN</span></span>
+                <span>• Plateforme officielle de compétitions d'adresse en ligne.</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-5">
+                <button onclick="openRulesModal()" class="hover:text-neon-green transition cursor-pointer font-medium">Règlement officiel (CGJ)</button>
+                <button onclick="openRulesModal('art3')" class="hover:text-neon-cyan transition cursor-pointer font-medium">Départage &amp; Équité</button>
+                <button onclick="openRechargeModal()" class="hover:text-white transition cursor-pointer font-medium">Paiements sécurisés &amp; Bonus</button>
+            </div>
+            <div class="flex items-center gap-2 text-zinc-500">
+                <span>PayPal</span> • <span>Visa</span> • <span>Mastercard</span> • <span>Apple Pay</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modale 1 : Règlement Officiel (CGJ) -->
+    <div id="rules-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass-panel max-w-2xl w-full rounded-2xl border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+            <!-- En-tête Modale Règlement -->
+            <div class="px-6 py-4 bg-dark-950/90 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xl">📜</span>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-white">Règlement Officiel &amp; Conditions Générales de Jeu</h3>
+                        <p class="text-[11px] text-neon-green font-semibold">Cadre légal français • Compétitions d'adresse sans hasard</p>
+                    </div>
+                </div>
+                <button onclick="closeRulesModal()" class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-700 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Corps défilant des articles -->
+            <div id="rules-content" class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
+                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-neon-green/15 text-neon-green font-mono text-xs">Article 1</span>
+                        Nature du jeu (100 % Adresse, Zéro Hasard)
+                    </h4>
+                    <p>
+                        Les compétitions organisées sur <strong>ApexWin</strong> constituent exclusivement des <strong>jeux d'adresse et de réflexes</strong> conformes à la législation française en vigueur. Aucun tirage au sort ni algorithme aléatoire n'intervient dans la désignation des gagnants. Tous les participants d'une même session affrontent une épreuve strictement identique (même vitesse de déplacement, même trajectoire et même cible).
+                    </p>
+                </div>
+
+                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
+                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple font-mono text-xs">Article 2</span>
+                        Fonctionnement des sessions et paliers
+                    </h4>
+                    <p>
+                        Chaque lot est associé à un montant de participation unitaire fixe et à un plafond de participations (ex. 300 ou 400 essais). Dès que la dernière participation du palier est validée, la session se clôture automatiquement et le classement est figé. Si une session n'atteint pas son quota dans un délai de <strong>30 jours calendaires</strong>, l'intégralité des mises engagées est automatiquement remboursée sur le portefeuille des joueurs.
+                    </p>
+                </div>
+
+                <div id="art3" class="bg-dark-900/90 p-4 rounded-xl border border-neon-cyan/30">
+                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-neon-cyan/15 text-neon-cyan font-mono text-xs">Article 3</span>
+                        Départage strict des ex æquo
+                    </h4>
+                    <p>
+                        Le classement est établi selon l'écart le plus faible mesuré par rapport au centre exact (<span class="font-mono text-white">50.000%</span>). En cas d'égalité parfaite d'écart entre deux ou plusieurs joueurs, <strong>le temps de réaction le plus court mesuré au millième de seconde</strong> par nos serveurs horodatés désigne l'unique vainqueur. À défaut d'écart sur ces deux critères, le participant ayant validé son score en premier dans l'ordre chronologique l'emporte.
+                    </p>
+                </div>
+
+                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
+                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs">Article 4</span>
+                        Attribution et livraison des lots
+                    </h4>
+                    <p>
+                        Les produits physiques neufs (consoles, smartphones, accessoires) sont expédiés gratuitement sous <strong>7 jours ouvrés</strong> avec suivi et assurance après vérification de l'identité et de la majorité du gagnant. Les cartes cadeaux dématérialisées sont délivrées par voie électronique sous 24 heures.
+                    </p>
+                </div>
+
+                <div class="bg-dark-900/90 p-4 rounded-xl border border-white/10">
+                    <h4 class="font-bold text-white text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded bg-neon-pink/20 text-neon-pink font-mono text-xs">Article 5</span>
+                        Jeu responsable &amp; Crédits gratuits promotionnels
+                    </h4>
+                    <p>
+                        La participation est strictement réservée aux personnes majeures (18 ans et plus). Chaque utilisateur peut configurer des plafonds de dépôt hebdomadaires ou mensuels. Des <strong>crédits promotionnels gratuits sans obligation d'achat</strong> sont régulièrement distribués lors de l'inscription ou via nos codes partenaires afin de permettre de tester la plateforme gratuitement.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pied Modale Règlement -->
+            <div class="px-6 py-4 bg-dark-950/90 border-t border-white/10 flex items-center justify-between">
+                <span class="text-[11px] text-zinc-400">Version en vigueur • Horodatage serveur certifié</span>
+                <button onclick="closeRulesModal()" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-neon-green text-dark-950 hover:bg-[#00e67a] transition cursor-pointer">
+                    J'ai compris et j'accepte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale 2 : Rechargement Sécurisé & Crédits Gratuits -->
+    <div id="recharge-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass-panel max-w-lg w-full rounded-2xl border border-white/15 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <!-- En-tête Modale Paiement -->
+            <div class="px-6 py-4 bg-dark-950/90 border-b border-white/10 flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-extrabold text-white">Recharger mon Portefeuille</h3>
+                    <p class="text-xs text-zinc-400">Créditez votre solde instantanément ou activez un bonus gratuit</p>
+                </div>
+                <button onclick="closeRechargeModal()" class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-700 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6">
+                <!-- Section Code Promo Gratuit (Sans achat) -->
+                <div class="bg-gradient-to-r from-neon-green/10 to-neon-cyan/10 border border-neon-green/30 rounded-xl p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-neon-green flex items-center gap-1.5">
+                            <span>🎁</span> Crédits Gratuits Sans Achat
+                        </span>
+                        <button onclick="fillPromoCode('APEX5')" class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-neon-green/20 text-neon-green hover:bg-neon-green/30 transition cursor-pointer">
+                            Utiliser : APEX5 (+5.00 €)
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="promo-code-input" type="text" placeholder="Ex: APEX5 ou GRATUIT" class="flex-1 bg-dark-950 border border-white/15 rounded-xl px-3.5 py-2 text-sm font-mono uppercase text-white placeholder-zinc-500 focus:outline-none focus:border-neon-green">
+                        <button onclick="applyPromoCode()" class="px-4 py-2 rounded-xl bg-neon-green text-dark-950 font-extrabold text-xs sm:text-sm hover:bg-[#00e67a] transition cursor-pointer shrink-0">
+                            Activer
+                        </button>
+                    </div>
+                    <p id="promo-feedback" class="text-[11px] mt-2 hidden"></p>
+                </div>
+
+                <!-- Sélection du Montant -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5">1. Choisissez un montant de recharge</label>
+                    <div id="amount-options" class="grid grid-cols-2 gap-2.5">
+                        <!-- Généré par JS -->
+                    </div>
+                </div>
+
+                <!-- Sélection du Moyen de Paiement -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5">2. Moyen de paiement sécurisé</label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <button type="button" onclick="selectPaymentMethod('paypal')" id="pm-paypal" class="pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-[#0070ba]/15 border-[#0070ba] text-white">
+                            <span class="font-black text-sm tracking-tight text-[#38bdf8]">Pay<span class="text-white">Pal</span></span>
+                            <span class="text-[10px] text-zinc-300">Instantané</span>
+                        </button>
+                        <button type="button" onclick="selectPaymentMethod('card')" id="pm-card" class="pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300">
+                            <span class="font-bold text-sm text-white">💳 Carte</span>
+                            <span class="text-[10px] text-zinc-400">Visa / MC</span>
+                        </button>
+                        <button type="button" onclick="selectPaymentMethod('applepay')" id="pm-applepay" class="pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300">
+                            <span class="font-bold text-sm text-white"> Pay / GPay</span>
+                            <span class="text-[10px] text-zinc-400">1-Clic Mobile</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bouton de validation du paiement -->
+                <div class="pt-2">
+                    <button id="confirm-payment-btn" onclick="processSimulatedPayment()" class="w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-lg flex items-center justify-center gap-2">
+                        <span>Payer 20.00 € avec PayPal (Recevoir 22.00 €)</span>
+                    </button>
+                    <p class="text-center text-[11px] text-zinc-500 mt-2.5 flex items-center justify-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-neon-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                        Transaction chiffrée SSL 256-bit • Sans frais cachés
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale 3 : Fin de Session (Vainqueur désigné) -->
+    <div id="winner-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="glass-panel max-w-md w-full rounded-2xl p-6 sm:p-8 text-center border border-neon-green/40 shadow-[0_0_50px_rgba(0,255,136,0.2)] transform transition-all">
+            <div id="modal-icon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-neon-green/20 text-neon-green flex items-center justify-center text-3xl">
+                🏆
+            </div>
+            <h3 id="modal-title" class="text-2xl font-black text-white mb-2">Session Terminée !</h3>
+            <p id="modal-desc" class="text-sm text-zinc-300 mb-6 leading-relaxed">
+                Les 200 participations ont été atteintes.
+            </p>
+            <div class="bg-dark-950 rounded-xl p-4 mb-6 border border-white/10">
+                <span class="text-xs text-zinc-400 uppercase block mb-1">Grand Vainqueur</span>
+                <span id="modal-winner-name" class="text-xl font-extrabold text-neon-green block">Alex_92</span>
+                <span id="modal-winner-score" class="text-xs font-mono text-zinc-300 mt-1 block">Écart : 0.015% • Temps : 0.612 s</span>
+            </div>
+            <button onclick="resetCompletedSession()" class="w-full py-3.5 px-6 rounded-xl font-bold bg-neon-purple hover:bg-neon-purple/90 text-white transition cursor-pointer">
+                Lancer une nouvelle session (0/200)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DONNÉES DE DÉMONSTRATION (TOP 5 DES ARTICLES LES PLUS RECHERCHÉS) ---
+        let walletBalance = 50.00;
+        let selectedPrizeId = 'iphone17';
+
+        const prizes = [
+            {
+                id: 'iphone17',
+                name: 'iPhone 17 Pro Max (256 Go)',
+                value: '1 479 €',
+                entryFee: 5.00,
+                currentEntries: 398,
+                maxEntries: 400,
+                speed: 1.95,
+                badge: 'Plus que 2 places !',
+                badgeColor: 'bg-neon-pink/20 text-neon-pink border-neon-pink/30',
+                svg: `<svg class="w-12 h-12 text-neon-cyan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01M9 5h6"/><circle cx="15" cy="8" r="1.5"/></svg>`,
+                leaderboard: [
+                    { player: 'Sniper_FR', diff: 0.015, reactionTime: 0.612, isUser: false },
+                    { player: 'Alex_92', diff: 0.015, reactionTime: 1.245, isUser: false },
+                    { player: 'Lucas_M', diff: 0.089, reactionTime: 0.784, isUser: false },
+                    { player: 'Chloe_B', diff: 0.145, reactionTime: 0.910, isUser: false },
+                    { player: 'Mehdi_93', diff: 0.290, reactionTime: 1.105, isUser: false }
+                ]
+            },
+            {
+                id: 'ps5pro',
+                name: 'PlayStation 5 Pro',
+                value: '799 €',
+                entryFee: 3.00,
+                currentEntries: 284,
+                maxEntries: 350,
+                speed: 1.75,
+                badge: 'Ultra Populaire',
+                badgeColor: 'bg-neon-purple/20 text-neon-purple border-neon-purple/30',
+                svg: `<svg class="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M9 2v20M12 2v20M15 2v20"/></svg>`,
+                leaderboard: [
+                    { player: 'Kylian75', diff: 0.042, reactionTime: 0.589, isUser: false },
+                    { player: 'Sarah_Gaming', diff: 0.042, reactionTime: 1.130, isUser: false },
+                    { player: 'Maxime_Pro', diff: 0.118, reactionTime: 0.820, isUser: false },
+                    { player: 'Ines_Win', diff: 0.240, reactionTime: 0.950, isUser: false }
+                ]
+            },
+            {
+                id: 'switch2',
+                name: 'Nintendo Switch 2',
+                value: '449 €',
+                entryFee: 2.00,
+                currentEntries: 192,
+                maxEntries: 280,
+                speed: 1.55,
+                badge: 'Tendance Gaming',
+                badgeColor: 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30',
+                svg: `<svg class="w-12 h-12 text-neon-pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M7 5v14M17 5v14"/><circle cx="4.5" cy="9" r="1"/><circle cx="19.5" cy="14" r="1"/></svg>`,
+                leaderboard: [
+                    { player: 'Nolan_K', diff: 0.068, reactionTime: 0.715, isUser: false },
+                    { player: 'Emma_L', diff: 0.155, reactionTime: 0.890, isUser: false },
+                    { player: 'Tom_69', diff: 0.290, reactionTime: 1.040, isUser: false }
+                ]
+            },
+            {
+                id: 'dyson',
+                name: 'Dyson Airwrap i.d.',
+                value: '549 €',
+                entryFee: 2.50,
+                currentEntries: 215,
+                maxEntries: 270,
+                speed: 1.60,
+                badge: 'Best-Seller Lifestyle',
+                badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                svg: `<svg class="w-12 h-12 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3h4v8a2 2 0 01-2 2h0a2 2 0 01-2-2V3z"/><path d="M12 13v8M9 21h6M10 6h4M10 9h4"/></svg>`,
+                leaderboard: [
+                    { player: 'Clara_Beauty', diff: 0.051, reactionTime: 0.695, isUser: false },
+                    { player: 'Lea_Paris', diff: 0.134, reactionTime: 0.840, isUser: false },
+                    { player: 'Manon_33', diff: 0.260, reactionTime: 1.120, isUser: false }
+                ]
+            },
+            {
+                id: 'amazon500',
+                name: 'Carte Cadeau Amazon 500 €',
+                value: '500 €',
+                entryFee: 2.00,
+                currentEntries: 299,
+                maxEntries: 300,
+                speed: 1.65,
+                badge: 'Dernière place (299/300) !',
+                badgeColor: 'bg-neon-green/20 text-neon-green border-neon-green/30',
+                svg: `<svg class="w-12 h-12 text-neon-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M7 15h4M15 15h2"/></svg>`,
+                leaderboard: [
+                    { player: 'Hugo_Boss', diff: 0.029, reactionTime: 0.640, isUser: false },
+                    { player: 'Yanis_94', diff: 0.088, reactionTime: 0.790, isUser: false },
+                    { player: 'Camille_D', diff: 0.175, reactionTime: 0.930, isUser: false },
+                    { player: 'Romain_V', diff: 0.310, reactionTime: 1.210, isUser: false }
+                ]
+            }
+        ];
+
+        // --- VARIABLES D'ÉTAT DU JEU ---
+        let isPlaying = false;
+        let cursorPosition = 0;
+        let direction = 1;
+        let animationFrameId = null;
+        let lastTimestamp = null;
+        let startTime = 0;
+
+        // --- FONCTION DE TRI MULTI-CRITÈRES (ÉCART PUIS CHRONO) ---
+        function sortLeaderboard(entries) {
+            return [...entries].sort((a, b) => {
+                // 1. Meilleur écart (le plus proche de 0.000%)
+                if (Math.abs(a.diff - b.diff) >= 0.0001) {
+                    return a.diff - b.diff;
+                }
+                // 2. Départage strict en cas d'égalité : temps de réaction le plus court (s)
+                return a.reactionTime - b.reactionTime;
+            });
+        }
+
+        // --- INITIALISATION ---
+        function init() {
+            prizes.forEach(p => {
+                p.leaderboard = sortLeaderboard(p.leaderboard);
+            });
+            renderPrizes();
+            selectPrize(selectedPrizeId);
+            updateWalletUI();
+            renderAmountOptions();
+            updateConfirmPaymentButton();
+        }
+
+        // --- MISE À JOUR DU PORTEFEUILLE ---
+        function updateWalletUI() {
+            document.getElementById('wallet-balance').textContent = walletBalance.toFixed(2) + ' €';
+        }
+
+        // --- GESTION DE LA MODALE RÈGLEMENT (CGJ) ---
+        function openRulesModal(sectionId) {
+            const modal = document.getElementById('rules-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (sectionId) {
+                const target = document.getElementById(sectionId);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function closeRulesModal() {
+            const modal = document.getElementById('rules-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // --- GESTION DE LA MODALE RECHARGEMENT & CRÉDITS GRATUITS ---
+        const rechargePacks = [
+            { amount: 10, bonus: 0, label: 'Pack Découverte' },
+            { amount: 20, bonus: 2, label: '+2.00 € Offerts', popular: true },
+            { amount: 50, bonus: 7, label: '+7.00 € Offerts' },
+            { amount: 100, bonus: 20, label: '+20.00 € Offerts' }
+        ];
+        let selectedPackIndex = 1;
+        let selectedPaymentMethod = 'paypal';
+        const usedPromoCodes = new Set();
+
+        function openRechargeModal() {
+            const modal = document.getElementById('recharge-modal');
+            document.getElementById('promo-feedback').classList.add('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            renderAmountOptions();
+            updateConfirmPaymentButton();
+        }
+
+        function closeRechargeModal() {
+            const modal = document.getElementById('recharge-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderAmountOptions() {
+            const container = document.getElementById('amount-options');
+            container.innerHTML = rechargePacks.map((pack, idx) => {
+                const active = idx === selectedPackIndex;
+                return `
+                <button type="button" onclick="selectRechargePack(${idx})"
+                    class="p-3.5 rounded-xl border text-left transition cursor-pointer relative
+                    ${active ? 'bg-neon-green/15 border-neon-green text-white shadow-[0_0_15px_rgba(0,255,136,0.15)]' : 'bg-dark-900/80 border-white/10 text-zinc-300 hover:border-white/25'}">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono font-extrabold text-base sm:text-lg ${active ? 'text-neon-green' : 'text-white'}">${pack.amount.toFixed(2)} €</span>
+                        ${pack.popular ? '<span class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-neon-purple text-white">Populaire</span>' : ''}
+                    </div>
+                    <span class="block text-[11px] mt-1 ${pack.bonus > 0 ? 'text-neon-cyan font-semibold' : 'text-zinc-500'}">
+                        ${pack.label}
+                    </span>
+                </button>
+                `;
+            }).join('');
+        }
+
+        function selectRechargePack(idx) {
+            selectedPackIndex = idx;
+            renderAmountOptions();
+            updateConfirmPaymentButton();
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            const methods = ['paypal', 'card', 'applepay'];
+            methods.forEach(m => {
+                const btn = document.getElementById('pm-' + m);
+                if (m === method) {
+                    if (m === 'paypal') {
+                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-[#0070ba]/20 border-[#38bdf8] text-white';
+                    } else if (m === 'card') {
+                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-neon-green/15 border-neon-green text-white';
+                    } else {
+                        btn.className = 'pm-btn p-3 rounded-xl border text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 bg-white/15 border-white text-white';
+                    }
+                } else {
+                    btn.className = 'pm-btn p-3 rounded-xl border border-white/10 bg-dark-900/80 hover:border-white/25 text-center transition cursor-pointer flex flex-col items-center justify-center gap-1 text-zinc-300';
+                }
+            });
+            updateConfirmPaymentButton();
+        }
+
+        function updateConfirmPaymentButton() {
+            const pack = rechargePacks[selectedPackIndex];
+            const totalCredit = pack.amount + pack.bonus;
+            const btn = document.getElementById('confirm-payment-btn');
+
+            if (selectedPaymentMethod === 'paypal') {
+                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-lg flex items-center justify-center gap-2';
+                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € avec PayPal (Recevoir ${totalCredit.toFixed(2)} €)</span>`;
+            } else if (selectedPaymentMethod === 'card') {
+                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-lg flex items-center justify-center gap-2';
+                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € par Carte (Recevoir ${totalCredit.toFixed(2)} €)</span>`;
+            } else {
+                btn.className = 'w-full py-3.5 px-6 rounded-xl font-extrabold text-sm sm:text-base tracking-wide transition cursor-pointer bg-white hover:bg-zinc-200 text-dark-950 shadow-lg flex items-center justify-center gap-2';
+                btn.innerHTML = `<span>Payer ${pack.amount.toFixed(2)} € via Apple Pay / GPay (${totalCredit.toFixed(2)} €)</span>`;
+            }
+        }
+
+        function fillPromoCode(code) {
+            document.getElementById('promo-code-input').value = code;
+        }
+
+        function applyPromoCode() {
+            const input = document.getElementById('promo-code-input');
+            const feedback = document.getElementById('promo-feedback');
+            const code = input.value.trim().toUpperCase();
+
+            feedback.classList.remove('hidden', 'text-neon-green', 'text-neon-pink');
+
+            if (!code) {
+                feedback.textContent = 'Veuillez saisir un code promotionnel (ex: APEX5).';
+                feedback.classList.add('text-neon-pink');
+                return;
+            }
+
+            if (code === 'APEX5' || code === 'GRATUIT') {
+                if (usedPromoCodes.has(code)) {
+                    feedback.textContent = `Le code ${code} a déjà été activé sur ce compte.`;
+                    feedback.classList.add('text-neon-pink');
+                    return;
+                }
+                usedPromoCodes.add(code);
+                walletBalance += 5.00;
+                updateWalletUI();
+                feedback.textContent = `✅ Code ${code} validé ! +5.00 € de crédits gratuits ajoutés à votre solde.`;
+                feedback.classList.add('text-neon-green');
+                showFeedback(`🎁 Bonus sans achat : +5.00 € crédités gratuitement avec le code <strong>${code}</strong> !`, 'success');
+            } else {
+                feedback.textContent = 'Code invalide. Essayez le code promotionnel APEX5 ou GRATUIT.';
+                feedback.classList.add('text-neon-pink');
+            }
+        }
+
+        function processSimulatedPayment() {
+            const pack = rechargePacks[selectedPackIndex];
+            const totalCredit = pack.amount + pack.bonus;
+            const btn = document.getElementById('confirm-payment-btn');
+            const providerLabel = selectedPaymentMethod === 'paypal' ? 'PayPal' : selectedPaymentMethod === 'card' ? 'Carte Bancaire' : 'Apple Pay / Google Pay';
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span><span>Connexion sécurisée ${providerLabel}...</span>`;
+
+            setTimeout(() => {
+                btn.disabled = false;
+                walletBalance += totalCredit;
+                updateWalletUI();
+                closeRechargeModal();
+                showFeedback(`✅ Paiement ${providerLabel} validé ! <strong>+${totalCredit.toFixed(2)} €</strong> ajoutés à votre portefeuille.`, 'success');
+            }, 900);
+        }
+
+        // --- AFFICHAGE DES LOTS ---
+        function renderPrizes() {
+            const grid = document.getElementById('prizes-grid');
+            grid.innerHTML = prizes.map(prize => {
+                const isSelected = prize.id === selectedPrizeId;
+                const percent = Math.min(100, Math.round((prize.currentEntries / prize.maxEntries) * 100));
+                const remaining = prize.maxEntries - prize.currentEntries;
+
+                return `
+                <div onclick="selectPrize('${prize.id}')" 
+                     class="glass-panel rounded-2xl p-5 cursor-pointer transition-all duration-200 relative overflow-hidden group
+                     ${isSelected ? 'ring-2 ring-neon-green bg-dark-800/90 shadow-[0_0_25px_rgba(0,255,136,0.15)]' : 'hover:border-white/25 hover:bg-dark-800/60'}">
+                    
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[11px] font-bold px-2.5 py-1 rounded-full border ${prize.badgeColor}">
+                            ${prize.badge}
+                        </span>
+                        <span class="text-xs font-semibold text-zinc-400">Valeur : <strong class="text-white">${prize.value}</strong></span>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-5">
+                        <div class="w-16 h-16 rounded-xl bg-dark-950/90 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            ${prize.svg}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-base sm:text-lg leading-tight">${prize.name}</h3>
+                            <p class="text-xs text-zinc-400 mt-1">Record : <span class="font-mono text-neon-cyan font-bold">${prize.leaderboard[0].diff.toFixed(3)}%</span> <span class="text-zinc-500">(${prize.leaderboard[0].reactionTime.toFixed(3)}s)</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Jauge de progression -->
+                    <div class="space-y-1.5 mb-4">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-zinc-400">Participations : <strong class="text-white font-mono">${prize.currentEntries}/${prize.maxEntries}</strong></span>
+                            <span class="font-mono font-bold ${remaining <= 5 ? 'text-neon-pink animate-pulse' : 'text-neon-green'}">
+                                ${remaining === 0 ? 'COMPLET' : `Plus que ${remaining} !`}
+                            </span>
+                        </div>
+                        <div class="w-full h-2.5 bg-dark-950 rounded-full overflow-hidden p-0.5 border border-white/5">
+                            <div class="h-full rounded-full transition-all duration-500 ${remaining <= 5 ? 'bg-gradient-to-r from-neon-purple to-neon-pink' : 'bg-gradient-to-r from-neon-cyan to-neon-green'}" 
+                                 style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-white/10 flex items-center justify-between">
+                        <span class="text-xs text-zinc-400">Mise : <strong class="text-white font-mono">${prize.entryFee.toFixed(2)} €</strong></span>
+                        <span class="font-bold text-xs px-3 py-1.5 rounded-lg transition-colors ${isSelected ? 'bg-neon-green text-dark-950' : 'bg-dark-950 text-white border border-white/15 group-hover:border-neon-green/50'}">
+                            ${isSelected ? '✓ Sélectionné' : 'Sélectionner ce lot'}
+                        </span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- SÉLECTION D'UN LOT ---
+        function selectPrize(prizeId) {
+            if (isPlaying) return; // Empêcher de changer en pleine partie
+            selectedPrizeId = prizeId;
+            const prize = prizes.find(p => p.id === prizeId);
+            prize.leaderboard = sortLeaderboard(prize.leaderboard);
+
+            // Mise à jour de l'arène
+            document.getElementById('active-prize-title').textContent = prize.name;
+            document.getElementById('active-prize-record').textContent = `${prize.leaderboard[0].diff.toFixed(3)}% (${prize.leaderboard[0].reactionTime.toFixed(3)}s)`;
+            document.getElementById('leaderboard-count').textContent = `${prize.currentEntries} / ${prize.maxEntries}`;
+            
+            // Réinitialisation visuelle du jeu
+            cursorPosition = 0;
+            direction = 1;
+            document.getElementById('game-cursor').style.left = '0%';
+            document.getElementById('live-position').textContent = '0.000%';
+            document.getElementById('live-timer').textContent = '0.000 s';
+            document.getElementById('live-diff').textContent = '—';
+            document.getElementById('live-diff').className = 'font-mono font-bold text-base sm:text-lg text-zinc-500';
+            document.getElementById('feedback-box').classList.add('hidden');
+
+            // Bouton principal (bloqué si session déjà complète)
+            const playBtn = document.getElementById('play-btn');
+            if (prize.currentEntries >= prize.maxEntries) {
+                playBtn.disabled = true;
+                playBtn.textContent = `Session Clôturée (${prize.maxEntries}/${prize.maxEntries})`;
+                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase bg-dark-800 text-zinc-500 border border-white/10 cursor-not-allowed";
+                const winner = prize.leaderboard[0];
+                showFeedback(`🏆 Lot remporté par <strong>${winner.player}</strong> (Écart : ${winner.diff.toFixed(3)}% en ${winner.reactionTime.toFixed(3)} s). Sélectionnez un autre lot ouvert ci-dessus !`, 'info');
+            } else {
+                playBtn.disabled = false;
+                playBtn.textContent = `Miser ${prize.entryFee.toFixed(2)} € et Jouer`;
+                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)] active:scale-[0.99]";
+            }
+
+            renderPrizes();
+            renderLeaderboard(prize);
+        }
+
+        // --- AFFICHAGE DU CLASSEMENT ---
+        function renderLeaderboard(prize) {
+            const list = document.getElementById('leaderboard-list');
+            const sorted = sortLeaderboard(prize.leaderboard);
+
+            list.innerHTML = sorted.map((entry, index) => {
+                const isFirst = index === 0;
+                const isUser = entry.isUser;
+                
+                // Vérifier s'il y a un ex æquo sur l'écart avec le voisin précédent ou suivant
+                const prevSame = index > 0 && Math.abs(sorted[index - 1].diff - entry.diff) < 0.0001;
+                const nextSame = index < sorted.length - 1 && Math.abs(sorted[index + 1].diff - entry.diff) < 0.0001;
+                const isTieBroken = prevSame || nextSame;
+                
+                return `
+                <div class="grid grid-cols-12 items-center p-3 rounded-xl border transition-all
+                    ${isFirst ? 'bg-neon-green/10 border-neon-green/40' : isUser ? 'bg-neon-purple/15 border-neon-purple/40' : 'bg-dark-900/70 border-white/5'}">
+                    
+                    <div class="col-span-2 flex items-center">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center font-mono font-bold text-xs
+                            ${isFirst ? 'bg-neon-green text-dark-950' : 'bg-dark-800 text-zinc-400'}">
+                            #${index + 1}
+                        </span>
+                    </div>
+
+                    <div class="col-span-5 pr-1">
+                        <p class="text-xs sm:text-sm font-bold truncate ${isUser ? 'text-neon-cyan' : 'text-white'} flex items-center gap-1">
+                            <span>${entry.player}</span>
+                            ${isFirst ? '<span title="En tête pour remporter le lot">👑</span>' : ''}
+                        </p>
+                        ${isTieBroken ? `
+                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-neon-cyan/15 text-neon-cyan border border-neon-cyan/30 mt-0.5">
+                                ⚡ Départagé au chrono
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <div class="col-span-3 text-right">
+                        <span class="font-mono font-bold text-xs sm:text-sm ${isFirst ? 'text-neon-green' : 'text-zinc-200'}">
+                            ${entry.diff.toFixed(3)}%
+                        </span>
+                    </div>
+
+                    <div class="col-span-2 text-right">
+                        <span class="font-mono font-semibold text-xs ${isTieBroken ? 'text-neon-cyan font-bold' : 'text-zinc-400'}">
+                            ${entry.reactionTime.toFixed(3)}s
+                        </span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // --- MÉCANIQUE DU JEU D'ADRESSE ---
+        function toggleGame() {
+            const prize = prizes.find(p => p.id === selectedPrizeId);
+            const playBtn = document.getElementById('play-btn');
+
+            if (prize.currentEntries >= prize.maxEntries) return;
+
+            if (!isPlaying) {
+                // Vérification du solde
+                if (walletBalance < prize.entryFee) {
+                    showFeedback('❌ Solde insuffisant ! Cliquez sur le bouton "+ Recharger" en haut pour ajouter des crédits.', 'error');
+                    return;
+                }
+
+                // Débit de la mise
+                walletBalance -= prize.entryFee;
+                updateWalletUI();
+
+                // Lancement de la partie
+                isPlaying = true;
+                cursorPosition = 0;
+                direction = 1;
+                startTime = performance.now();
+                lastTimestamp = startTime;
+                
+                document.getElementById('feedback-box').classList.add('hidden');
+                document.getElementById('live-timer').textContent = '0.000 s';
+                document.getElementById('live-diff').textContent = 'En cours...';
+                document.getElementById('live-diff').className = 'font-mono font-bold text-base sm:text-lg text-neon-cyan animate-pulse';
+
+                playBtn.textContent = '🛑 STOP ! (Cliquez pour arrêter)';
+                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-75 cursor-pointer bg-neon-pink hover:bg-[#ff1a75] text-white shadow-[0_0_25px_rgba(255,42,133,0.5)] scale-[1.01]";
+
+                animationFrameId = requestAnimationFrame(gameLoop);
+            } else {
+                // Arrêt du curseur
+                stopGame(prize);
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (!isPlaying) return;
+
+            const prize = prizes.find(p => p.id === selectedPrizeId);
+            // Mouvement fluide indépendant du taux de rafraîchissement écran
+            const delta = (timestamp - lastTimestamp) / 16.67;
+            lastTimestamp = timestamp;
+
+            cursorPosition += prize.speed * direction * delta;
+
+            if (cursorPosition >= 100) {
+                cursorPosition = 100;
+                direction = -1;
+            } else if (cursorPosition <= 0) {
+                cursorPosition = 0;
+                direction = 1;
+            }
+
+            const elapsedSeconds = (timestamp - startTime) / 1000;
+            document.getElementById('game-cursor').style.left = cursorPosition + '%';
+            document.getElementById('live-position').textContent = cursorPosition.toFixed(3) + '%';
+            document.getElementById('live-timer').textContent = elapsedSeconds.toFixed(3) + ' s';
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function stopGame(prize) {
+            const stopTimestamp = performance.now();
+            isPlaying = false;
+            cancelAnimationFrame(animationFrameId);
+
+            // Calcul précis de l'écart par rapport à 50.000% et du temps de réaction en secondes
+            const exactDiff = parseFloat(Math.abs(50.000 - cursorPosition).toFixed(3));
+            const exactReactionTime = parseFloat(((stopTimestamp - startTime) / 1000).toFixed(3));
+
+            // Affichage télémétrie
+            document.getElementById('live-timer').textContent = exactReactionTime.toFixed(3) + ' s';
+            const diffEl = document.getElementById('live-diff');
+            diffEl.textContent = exactDiff.toFixed(3) + '%';
+            
+            const bestBefore = prize.leaderboard[0];
+            const beatsRecord = (exactDiff < bestBefore.diff) || 
+                                (Math.abs(exactDiff - bestBefore.diff) < 0.0001 && exactReactionTime < bestBefore.reactionTime);
+
+            if (beatsRecord) {
+                diffEl.className = 'font-mono font-extrabold text-base sm:text-lg text-neon-green';
+            } else {
+                diffEl.className = 'font-mono font-bold text-base sm:text-lg text-neon-pink';
+            }
+
+            // Enregistrement de la participation
+            prize.currentEntries++;
+            prize.leaderboard.push({
+                player: 'Joueur_Pro (Vous)',
+                diff: exactDiff,
+                reactionTime: exactReactionTime,
+                isUser: true
+            });
+            prize.leaderboard = sortLeaderboard(prize.leaderboard);
+
+            // Mise à jour de l'interface
+            const newBest = prize.leaderboard[0];
+            document.getElementById('active-prize-record').textContent = `${newBest.diff.toFixed(3)}% (${newBest.reactionTime.toFixed(3)}s)`;
+            document.getElementById('leaderboard-count').textContent = `${prize.currentEntries} / ${prize.maxEntries}`;
+            renderPrizes();
+            renderLeaderboard(prize);
+
+            // Réinitialisation du bouton
+            const playBtn = document.getElementById('play-btn');
+            playBtn.textContent = `Rejouer (${prize.entryFee.toFixed(2)} €)`;
+            playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase transition-all duration-150 cursor-pointer bg-neon-green hover:bg-[#00e67a] text-dark-950 shadow-[0_0_20px_rgba(0,255,136,0.3)]";
+
+            // Message de feedback
+            if (beatsRecord) {
+                showFeedback(`🔥 NOUVEAU RECORD ! Écart : <strong>${exactDiff.toFixed(3)}%</strong> en <strong>${exactReactionTime.toFixed(3)} s</strong> ! Vous prenez la 1ère place !`, 'success');
+            } else {
+                showFeedback(`🎯 Score : <strong>${exactDiff.toFixed(3)}%</strong> en <strong>${exactReactionTime.toFixed(3)} s</strong> (Record : ${newBest.diff.toFixed(3)}% en ${newBest.reactionTime.toFixed(3)} s).`, 'warning');
+            }
+
+            // Vérification si la jauge est pleine
+            if (prize.currentEntries >= prize.maxEntries) {
+                playBtn.disabled = true;
+                playBtn.textContent = `Session Clôturée (${prize.maxEntries}/${prize.maxEntries})`;
+                playBtn.className = "w-full py-4 px-6 rounded-xl font-extrabold text-base sm:text-lg tracking-wide uppercase bg-dark-800 text-zinc-500 border border-white/10 cursor-not-allowed";
+                triggerSessionCompletion(prize);
+            }
+        }
+
+        // --- DÉCLENCHEMENT AUTOMATIQUE DE FIN DE SESSION ---
+        function triggerSessionCompletion(prize) {
+            const winner = prize.leaderboard[0];
+            const modal = document.getElementById('winner-modal');
+            
+            document.getElementById('modal-desc').textContent = `L'objectif des ${prize.maxEntries} participations pour "${prize.name}" a été atteint ! Le classement est figé.`;
+            document.getElementById('modal-winner-name').textContent = winner.player;
+            document.getElementById('modal-winner-score').textContent = `Écart : ${winner.diff.toFixed(3)}% • Temps de réaction : ${winner.reactionTime.toFixed(3)} s`;
+
+            const resetBtn = modal.querySelector('button');
+            resetBtn.textContent = `Lancer une nouvelle session (0/${prize.maxEntries})`;
+
+            if (winner.isUser) {
+                document.getElementById('modal-icon').textContent = '🎉';
+                document.getElementById('modal-title').textContent = 'FÉLICITATIONS, VOUS AVEZ GAGNÉ !';
+            } else {
+                document.getElementById('modal-icon').textContent = '🏆';
+                document.getElementById('modal-title').textContent = 'Session Terminée !';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function resetCompletedSession() {
+            const prize = prizes.find(p => p.id === selectedPrizeId);
+            prize.currentEntries = 0;
+            prize.leaderboard = [
+                { player: 'Bot_Calibration', diff: 0.250, reactionTime: 1.500, isUser: false }
+            ];
+            
+            document.getElementById('winner-modal').classList.add('hidden');
+            document.getElementById('winner-modal').classList.remove('flex');
+            selectPrize(prize.id);
+        }
+
+        // --- UTILITAIRE DE NOTIFICATION ---
+        function showFeedback(htmlMessage, type) {
+            const box = document.getElementById('feedback-box');
+            box.innerHTML = htmlMessage;
+            box.classList.remove('hidden', 'bg-neon-green/15', 'border-neon-green/40', 'text-neon-green', 'bg-neon-pink/15', 'border-neon-pink/40', 'text-neon-pink', 'bg-amber-500/15', 'border-amber-500/40', 'text-amber-300', 'bg-neon-cyan/15', 'border-neon-cyan/40', 'text-neon-cyan');
+
+            if (type === 'success') {
+                box.classList.add('bg-neon-green/15', 'border-neon-green/40', 'text-neon-green');
+            } else if (type === 'error') {
+                box.classList.add('bg-neon-pink/15', 'border-neon-pink/40', 'text-neon-pink');
+            } else if (type === 'info') {
+                box.classList.add('bg-neon-cyan/15', 'border-neon-cyan/40', 'text-neon-cyan');
+            } else {
+                box.classList.add('bg-amber-500/15', 'border-amber-500/40', 'text-amber-300');
+            }
+        }
+
+        // Démarrage
+        window.onload = init;
+    </script>
+</body>
+</html>
