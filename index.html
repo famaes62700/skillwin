@@ -446,6 +446,27 @@
             cursor: not-allowed;
         }
 
+        .btn-relaunch {
+            margin-top: 12px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: #0f111a;
+            border: none;
+            padding: 11px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-relaunch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.35);
+        }
+
         .result-box {
             margin-top: 18px;
             padding: 15px;
@@ -538,7 +559,7 @@
             display: none;
             background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 242, 254, 0.2));
             border: 1px solid var(--accent);
-            padding: 15px;
+            padding: 16px;
             border-radius: 12px;
             margin-bottom: 20px;
             text-align: center;
@@ -850,7 +871,10 @@
 
             <div class="winner-banner" id="winner-banner">
                 <h4>🏆 PALIER ATTEINT — SESSION CLÔTURÉE !</h4>
-                <p id="winner-announcement" style="margin-top: 5px; font-size: 14px;"></p>
+                <p id="winner-announcement" style="margin-top: 6px; font-size: 14px;"></p>
+                <button class="btn-relaunch" id="relaunch-btn" onclick="relaunchCurrentPrize()">
+                    🔄 Relancer une nouvelle session (0/400)
+                </button>
             </div>
 
             <!-- Télémétrie en temps réel -->
@@ -1182,6 +1206,21 @@
         renderPrizes();
     }
 
+    // Remettre en ligne le même lot à 0 participation
+    function relaunchCurrentPrize() {
+        if (isPlaying) return;
+        const prize = getActivePrize();
+        prize.current = 0;
+        prize.scores = [];
+        prize.tag = '🆕 Nouvelle session';
+        position = 0;
+        cursorEl.style.left = '0%';
+        liveChronoEl.textContent = '0.000 s';
+        resultBox.innerHTML = `<span style="color: var(--accent); font-weight: 600; font-size: 14px;">🆕 Nouvelle session lancée pour <strong>${prize.name}</strong> (0/${prize.max}) ! Soyez le premier à établir le record.</span>`;
+        renderPrizes();
+        updateArena();
+    }
+
     function updateArena() {
         const prize = getActivePrize();
         sortScores(prize.scores);
@@ -1198,7 +1237,7 @@
             const best = prize.scores[0];
             recordDisplayEl.textContent = `${best.diff.toFixed(3)}% (${best.time.toFixed(3)}s)`;
         } else {
-            recordDisplayEl.textContent = 'Aucun score';
+            recordDisplayEl.textContent = 'Aucun score (0/0)';
         }
 
         if (isFull) {
@@ -1210,6 +1249,7 @@
             winnerBanner.classList.add('show');
             document.getElementById('winner-announcement').innerHTML = 
                 `<strong>${winner.player}</strong> remporte le lot <strong>${prize.name}</strong> avec un écart de <strong>${winner.diff.toFixed(3)}%</strong> en <strong>${winner.time.toFixed(3)}s</strong> !`;
+            document.getElementById('relaunch-btn').textContent = `🔄 Relancer une nouvelle session (0/${prize.max})`;
         } else {
             actionBtn.disabled = false;
             actionBtn.textContent = `Miser ${prize.cost.toFixed(2)} € et Jouer`;
@@ -1218,6 +1258,11 @@
         }
 
         leaderboardList.innerHTML = '';
+        if (prize.scores.length === 0) {
+            leaderboardList.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 25px 10px; font-size: 13px;">Aucune participation enregistrée pour le moment.<br>Lancez la première partie pour prendre la 1ʳᵉ place !</li>';
+            return;
+        }
+
         prize.scores.forEach((entry, index) => {
             const li = document.createElement('li');
             li.className = `leaderboard-item ${index === 0 ? 'top-1' : ''}`;
