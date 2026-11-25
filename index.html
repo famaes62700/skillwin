@@ -93,7 +93,7 @@
         .amount-btn { background: var(--bg-dark); border: 2px solid var(--border); color: var(--text-main); padding: 12px 6px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; text-align: center; }
         .amount-btn span { display: block; font-size: 11px; color: var(--accent); }
         .amount-btn.selected { border-color: var(--primary); }
-        .payment-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .payment-methods { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
         .method-card { display: flex; align-items: center; justify-content: space-between; background: var(--bg-dark); border: 2px solid var(--border); padding: 14px 16px; border-radius: 12px; cursor: pointer; }
         .method-card.selected { border-color: var(--primary); }
         .free-promo-box { background: rgba(0, 255, 136, 0.06); border: 1px dashed rgba(0, 255, 136, 0.4); border-radius: 12px; padding: 14px; margin-bottom: 20px; }
@@ -102,6 +102,7 @@
         .btn-promo { background: var(--accent); color: #0f111a; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; }
         .btn-confirm-pay { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #0f111a; }
         .btn-confirm-pay.paypal-style { background: #0070ba; color: white; }
+        .pay-notice { margin-top: 12px; font-size: 12px; color: var(--warning); background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.3); padding: 10px 12px; border-radius: 10px; }
         .rules-section { margin-bottom: 14px; background: var(--bg-dark); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); }
         .rules-section h4 { color: var(--primary); font-size: 14px; margin-bottom: 4px; }
         .rules-section p { font-size: 13px; color: var(--text-muted); }
@@ -218,10 +219,13 @@
         </div>
         <div class="payment-methods">
             <div class="method-card selected" onclick="selectMethod('paypal', this)"><div>🅿️ PayPal Express</div><span>Instantané</span></div>
-            <div class="method-card" onclick="selectMethod('card', this)"><div>💳 Carte Bancaire</div><span>3D-Secure</span></div>
+            <div class="method-card" onclick="selectMethod('card', this)"><div>💳 Carte Bancaire (Stripe)</div><span>3D-Secure</span></div>
             <div class="method-card" onclick="selectMethod('apple', this)"><div>📱 Apple / Google Pay</div><span>Mobile</span></div>
         </div>
         <button class="btn-confirm-pay paypal-style" id="confirm-pay-btn" onclick="processPayment()">Payer 20.00 € avec PayPal (+2.00 € offerts)</button>
+        <div class="pay-notice" id="payment-status-msg">
+            🔒 Pour encaisser de l'argent réel, reliez vos liens Stripe Checkout ou votre SDK PayPal + webhook Supabase afin que le crédit soit validé après paiement effectif.
+        </div>
     </div>
 </div>
 
@@ -248,6 +252,14 @@
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
+    // Remplacez ces URLs par vos vrais liens Stripe Payment Links ou votre endpoint de création de session
+    const STRIPE_PAYMENT_LINKS = {
+        10: '',
+        20: '',
+        50: '',
+        100: ''
+    };
+
     let prizes = [
         { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 398, max: 400, speed: 1.75, scores: [] },
         { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 347, max: 350, speed: 1.65, scores: [] },
@@ -271,6 +283,7 @@
     const recordDisplayEl = document.getElementById('record-display');
     const dbStatusEl = document.getElementById('db-status');
     const playerNameInput = document.getElementById('player-name-input');
+    const paymentStatusMsg = document.getElementById('payment-status-msg');
 
     function getPlayerName() {
         const clean = playerNameInput.value.trim();
@@ -336,6 +349,20 @@
         updateArena();
     }
 
+    function checkPaymentReturnUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const paymentState = params.get('payment');
+        if (paymentState === 'success') {
+            paymentStatusMsg.innerHTML = '<span style="color:var(--accent);">✅ Paiement confirmé : actualisation de votre solde en cours...</span>';
+            openModal('payment-modal');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (paymentState === 'cancel') {
+            paymentStatusMsg.innerHTML = '<span style="color:var(--danger);">❌ Paiement annulé. Aucun montant n’a été débité.</span>';
+            openModal('payment-modal');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
     function sortScores(arr) { return arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time); }
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
 
@@ -346,6 +373,7 @@
         }
         updateBalanceDisplay();
         updatePromoUI();
+        checkPaymentReturnUrl();
 
         try {
             if (!window.supabase) {
@@ -532,10 +560,14 @@
         }
     }
     async function processPayment() {
-        userBalance = Number((userBalance + selectedAmount + selectedBonus).toFixed(2));
-        updateBalanceDisplay();
-        await savePlayerProfile();
-        closeModal('payment-modal');
+        const stripeUrl = STRIPE_PAYMENT_LINKS[selectedAmount];
+        if (stripeUrl && stripeUrl.startsWith('https://')) {
+            const urlWithRef = new URL(stripeUrl);
+            urlWithRef.searchParams.set('client_reference_id', getPlayerName());
+            window.location.href = urlWithRef.toString();
+            return;
+        }
+        paymentStatusMsg.innerHTML = `⚠️ Passerelle <strong>${selectedMethod.toUpperCase()}</strong> non encore configurée pour ${selectedAmount.toFixed(2)} €. Ajoutez vos liens Stripe ou votre SDK PayPal + webhook Supabase avant de créditer des fonds réels.`;
     }
 
     loadDataFromSupabase();
