@@ -286,8 +286,10 @@
         const { data: comps, error: compErr } = await sbClient.from('competitions').select('*');
         const { data: allScores, error: scoreErr } = await sbClient.from('scores').select('*');
         if (compErr || scoreErr) {
-            dbStatusEl.textContent = '❌ Erreur connexion Supabase';
-            renderPrizes(); updateArena(); return;
+    const msg = (compErr || scoreErr).message;
+    dbStatusEl.textContent = '❌ Erreur : ' + msg;
+    renderPrizes(); updateArena(); return;
+}
         }
         const orderMap = { iphone17: 1, ps5pro: 2, switch2: 3, dyson: 4, amazon500: 5 };
         comps.sort((a, b) => (orderMap[a.id] || 99) - (orderMap[b.id] || 99));
