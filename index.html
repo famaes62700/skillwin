@@ -26,7 +26,7 @@
         .logo { font-size: 24px; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
         .nav-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .player-tag-box { display: flex; align-items: center; gap: 6px; background: var(--bg-dark); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; }
-        .player-tag-input { background: transparent; border: none; color: var(--primary); font-weight: 700; width: 110px; font-size: 13px; outline: none; }
+        .player-tag-input { background: transparent; border: none; color: var(--primary); font-weight: 700; width: 120px; font-size: 13px; outline: none; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .wallet { display: flex; align-items: center; gap: 12px; background: var(--bg-dark); padding: 6px 14px; border-radius: 30px; border: 1px solid var(--border); }
         .balance { font-weight: 700; color: var(--accent); font-size: 15px; }
@@ -117,7 +117,7 @@
     <div class="nav-actions">
         <div class="player-tag-box">
             <span>👤</span>
-            <input type="text" id="player-name-input" class="player-tag-input" value="Joueur_1" maxlength="16">
+            <input type="text" id="player-name-input" class="player-tag-input" value="Joueur_1" maxlength="16" onchange="handlePlayerChange()">
         </div>
         <button class="btn-outline" onclick="openModal('rules-modal')">📜 Règlement &amp; CGJ</button>
         <div class="wallet">
@@ -272,11 +272,81 @@
     const dbStatusEl = document.getElementById('db-status');
     const playerNameInput = document.getElementById('player-name-input');
 
-    function getPlayerName() { return playerNameInput.value.trim() || 'Joueur_1'; }
+    function getPlayerName() {
+        const clean = playerNameInput.value.trim();
+        return clean || 'Joueur_1';
+    }
+
+    function updateBalanceDisplay() {
+        balanceEl.textContent = Number(userBalance).toFixed(2) + ' €';
+    }
+
+    function updatePromoUI() {
+        const feedback = document.getElementById('promo-feedback');
+        if (freeCodeUsed) {
+            feedback.innerHTML = '<span style="color:var(--accent);">✅ Bonus gratuit déjà activé pour ce compte.</span>';
+        } else {
+            feedback.innerHTML = 'Code : <strong>SKILL5</strong>';
+        }
+    }
+
+    async function syncPlayerProfile(playerName) {
+        if (!sbClient) return;
+        const { data, error } = await sbClient
+            .from('players')
+            .select('*')
+            .eq('player_name', playerName)
+            .maybeSingle();
+
+        if (error) return;
+
+        if (data) {
+            userBalance = Number(data.balance);
+            freeCodeUsed = Boolean(data.free_promo_used);
+        } else {
+            userBalance = 50.00;
+            freeCodeUsed = false;
+            await sbClient.from('players').insert({
+                player_name: playerName,
+                balance: userBalance,
+                free_promo_used: freeCodeUsed
+            });
+        }
+        updateBalanceDisplay();
+        updatePromoUI();
+    }
+
+    async function savePlayerProfile() {
+        if (!sbClient) return;
+        const playerName = getPlayerName();
+        await sbClient.from('players').upsert({
+            player_name: playerName,
+            balance: Number(userBalance.toFixed(2)),
+            free_promo_used: freeCodeUsed,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'player_name' });
+    }
+
+    async function handlePlayerChange() {
+        if (isPlaying) return;
+        const clean = getPlayerName();
+        playerNameInput.value = clean;
+        localStorage.setItem('skillwin_player_name', clean);
+        await syncPlayerProfile(clean);
+        updateArena();
+    }
+
     function sortScores(arr) { return arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time); }
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
 
     async function loadDataFromSupabase() {
+        const savedName = localStorage.getItem('skillwin_player_name');
+        if (savedName) {
+            playerNameInput.value = savedName;
+        }
+        updateBalanceDisplay();
+        updatePromoUI();
+
         try {
             if (!window.supabase) {
                 dbStatusEl.textContent = '❌ Librairie Supabase bloquée (désactivez bloqueur de pub)';
@@ -324,6 +394,8 @@
                     };
                 });
             }
+
+            await syncPlayerProfile(getPlayerName());
 
             dbStatusEl.textContent = '🟢 Connecté à Supabase (Temps réel)';
             renderPrizes();
@@ -412,7 +484,9 @@
         const currentPlayer = getPlayerName();
         if (!isPlaying) {
             if (prize.current >= prize.max || userBalance < prize.cost) return;
-            userBalance -= prize.cost; balanceEl.textContent = userBalance.toFixed(2) + ' €';
+            userBalance = Number((userBalance - prize.cost).toFixed(2));
+            updateBalanceDisplay();
+            await savePlayerProfile();
             isPlaying = true; position = 0; direction = 1; startTime = performance.now();
             actionBtn.textContent = 'STOP ! (Cliquez pour figer)'; actionBtn.classList.add('stop-mode');
             animationId = requestAnimationFrame(animateCursor);
@@ -443,16 +517,24 @@
         btn.className = selectedMethod === 'paypal' ? 'btn-confirm-pay paypal-style' : 'btn-confirm-pay';
         btn.textContent = `Payer ${selectedAmount.toFixed(2)} €${bonusTxt}`;
     }
-    function claimFreeCredit() {
-        if (freeCodeUsed) return;
+    async function claimFreeCredit() {
+        if (freeCodeUsed) {
+            updatePromoUI();
+            return;
+        }
         const val = document.getElementById('promo-code-input').value.trim().toUpperCase();
         if (val === 'SKILL5' || val === 'GRATUIT') {
-            freeCodeUsed = true; userBalance += 5.00; balanceEl.textContent = userBalance.toFixed(2) + ' €';
-            document.getElementById('promo-feedback').innerHTML = '<span style="color:var(--accent);">✅ +5.00 € gratuits ajoutés !</span>';
+            freeCodeUsed = true;
+            userBalance = Number((userBalance + 5.00).toFixed(2));
+            updateBalanceDisplay();
+            updatePromoUI();
+            await savePlayerProfile();
         }
     }
-    function processPayment() {
-        userBalance += selectedAmount + selectedBonus; balanceEl.textContent = userBalance.toFixed(2) + ' €';
+    async function processPayment() {
+        userBalance = Number((userBalance + selectedAmount + selectedBonus).toFixed(2));
+        updateBalanceDisplay();
+        await savePlayerProfile();
         closeModal('payment-modal');
     }
 
