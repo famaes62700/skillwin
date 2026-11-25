@@ -245,11 +245,8 @@
 </footer>
 
 <script>
-    // =========================================================================
-    // CONFIGURATION SUPABASE — Remplacez ces 2 valeurs par vos clés Supabase
-    // =========================================================================
-    const SUPABASE_URL = https://hvgrngfmbslpphrjldgl.supabase.co/rest/v1/
-    const SUPABASE_ANON_KEY = sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD
+    const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
     const hasSupabaseConfig = SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('VOTRE_') && !SUPABASE_ANON_KEY.includes('VOTRE_');
     const sbClient = hasSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
