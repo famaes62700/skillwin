@@ -248,9 +248,6 @@
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
-    const hasSupabaseConfig = SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('VOTRE_') && !SUPABASE_ANON_KEY.includes('VOTRE_');
-    const sbClient = hasSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
     let prizes = [
         { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 398, max: 400, speed: 1.75, scores: [] },
         { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 347, max: 350, speed: 1.65, scores: [] },
@@ -261,6 +258,7 @@
 
     let activePrizeId = 'iphone17', userBalance = 50.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
     let selectedAmount = 20, selectedBonus = 2, selectedMethod = 'paypal', freeCodeUsed = false;
+    let sbClient = null;
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -279,27 +277,62 @@
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
 
     async function loadDataFromSupabase() {
-        if (!sbClient) {
-            dbStatusEl.textContent = '⚠️ Mode démo local (clés Supabase à ajouter)';
-            renderPrizes(); updateArena(); return;
+        try {
+            if (!window.supabase) {
+                dbStatusEl.textContent = '❌ Librairie Supabase bloquée (désactivez bloqueur de pub)';
+                renderPrizes(); updateArena(); return;
+            }
+
+            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Délai dépassé (5s) — vérifiez URL/clé')), 5000)
+            );
+
+            const fetchPromise = Promise.all([
+                sbClient.from('competitions').select('*'),
+                sbClient.from('scores').select('*')
+            ]);
+
+            const [compRes, scoreRes] = await Promise.race([fetchPromise, timeoutPromise]);
+
+            if (compRes.error || scoreRes.error) {
+                const err = compRes.error || scoreRes.error;
+                dbStatusEl.textContent = '❌ Supabase : ' + err.message;
+                renderPrizes(); updateArena(); return;
+            }
+
+            if (compRes.data && compRes.data.length > 0) {
+                const orderMap = { iphone17: 1, ps5pro: 2, switch2: 3, dyson: 4, amazon500: 5 };
+                compRes.data.sort((a, b) => (orderMap[a.id] || 99) - (orderMap[b.id] || 99));
+                prizes = compRes.data.map(c => {
+                    const compScores = (scoreRes.data || [])
+                        .filter(s => s.competition_id === c.id)
+                        .map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
+                    sortScores(compScores);
+                    return {
+                        id: c.id,
+                        name: c.name,
+                        value: c.prize_value,
+                        tag: c.tag,
+                        icon: c.icon,
+                        cost: Number(c.cost),
+                        current: Number(c.current_entries),
+                        max: Number(c.max_entries),
+                        speed: Number(c.speed),
+                        scores: compScores
+                    };
+                });
+            }
+
+            dbStatusEl.textContent = '🟢 Connecté à Supabase (Temps réel)';
+            renderPrizes();
+            updateArena();
+        } catch (e) {
+            dbStatusEl.textContent = '❌ Erreur : ' + e.message;
+            renderPrizes();
+            updateArena();
         }
-        const { data: comps, error: compErr } = await sbClient.from('competitions').select('*');
-        const { data: allScores, error: scoreErr } = await sbClient.from('scores').select('*');
-        if (compErr || scoreErr) {
-    const msg = (compErr || scoreErr).message;
-    dbStatusEl.textContent = '❌ Erreur : ' + msg;
-    renderPrizes(); updateArena(); return;
-}
-        }
-        const orderMap = { iphone17: 1, ps5pro: 2, switch2: 3, dyson: 4, amazon500: 5 };
-        comps.sort((a, b) => (orderMap[a.id] || 99) - (orderMap[b.id] || 99));
-        prizes = comps.map(c => {
-            const compScores = (allScores || []).filter(s => s.competition_id === c.id).map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
-            sortScores(compScores);
-            return { id: c.id, name: c.name, value: c.prize_value, tag: c.tag, icon: c.icon, cost: Number(c.cost), current: Number(c.current_entries), max: Number(c.max_entries), speed: Number(c.speed), scores: compScores };
-        });
-        dbStatusEl.textContent = '🟢 Connecté à Supabase (Temps réel)';
-        renderPrizes(); updateArena();
     }
 
     function renderPrizes() {
