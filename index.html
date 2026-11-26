@@ -224,7 +224,7 @@
         </div>
         <button class="btn-confirm-pay paypal-style" id="confirm-pay-btn" onclick="processPayment()">Payer 20.00 € avec PayPal (+2.00 € offerts)</button>
         <div class="pay-notice" id="payment-status-msg">
-            🔒 Pour encaisser de l'argent réel, reliez vos liens Stripe Checkout ou votre SDK PayPal + webhook Supabase afin que le crédit soit validé après paiement effectif.
+            🔒 Paiement sécurisé : le solde de votre compte joueur est crédité automatiquement dès validation de la transaction.
         </div>
     </div>
 </div>
@@ -252,9 +252,10 @@
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
+    // Liens de paiement Stripe sans pseudo en dur : le vrai pseudo du joueur est ajouté automatiquement au clic
     const STRIPE_PAYMENT_LINKS = {
         10: 'https://buy.stripe.com/test_00wfZjbpMb2RdUz3gogEg03',
-        20: 'https://buy.stripe.com/test_aFa14p51ofj7cQvbMUgEg04?client_reference_id=fab',
+        20: 'https://buy.stripe.com/test_aFa14p51ofj7cQvbMUgEg04',
         50: 'https://buy.stripe.com/test_28E9AV1Pcc6VeYDbMUgEg01',
         100: 'https://buy.stripe.com/test_7sY8wRalI9YN4jZcQYgEg00'
     };
@@ -355,7 +356,8 @@
             paymentStatusMsg.innerHTML = '<span style="color:var(--accent);">✅ Paiement confirmé : actualisation de votre solde en cours...</span>';
             openModal('payment-modal');
             window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (paymentState === 'cancel') {
+            setTimeout(() => syncPlayerProfile(getPlayerName()), 2500);
+        } else if (paymentState === 'cancel' || paymentState === 'cancelled') {
             paymentStatusMsg.innerHTML = '<span style="color:var(--danger);">❌ Paiement annulé. Aucun montant n’a été débité.</span>';
             openModal('payment-modal');
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -561,8 +563,13 @@
     async function processPayment() {
         const stripeUrl = STRIPE_PAYMENT_LINKS[selectedAmount];
         if (stripeUrl && stripeUrl.startsWith('https://')) {
+            const playerName = getPlayerName();
+            playerNameInput.value = playerName;
+            localStorage.setItem('skillwin_player_name', playerName);
+            await syncPlayerProfile(playerName);
+
             const urlWithRef = new URL(stripeUrl);
-            urlWithRef.searchParams.set('client_reference_id', getPlayerName());
+            urlWithRef.searchParams.set('client_reference_id', playerName);
             window.location.href = urlWithRef.toString();
             return;
         }
