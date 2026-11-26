@@ -122,7 +122,7 @@
         </div>
         <button class="btn-outline" onclick="openModal('rules-modal')">📜 Règlement &amp; CGJ</button>
         <div class="wallet">
-            <span>Solde : <span class="balance" id="user-balance">50.00 €</span></span>
+            <span>Solde : <span class="balance" id="user-balance">0.00 €</span></span>
             <button class="btn-deposit" onclick="openModal('payment-modal')">+ Recharger</button>
         </div>
     </div>
@@ -268,7 +268,7 @@
         { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 299, max: 300, speed: 1.55, scores: [] }
     ];
 
-    let activePrizeId = 'iphone17', userBalance = 50.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
+    let activePrizeId = 'iphone17', userBalance = 0.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
     let selectedAmount = 20, selectedBonus = 2, selectedMethod = 'paypal', freeCodeUsed = false;
     let sbClient = null;
 
@@ -316,7 +316,7 @@
         if (data) {
             userBalance = Number(data.balance);
             freeCodeUsed = Boolean(data.free_promo_used);
-        } else } else {
+        } else {
             userBalance = 0.00;
             freeCodeUsed = false;
             await sbClient.from('players').insert({
