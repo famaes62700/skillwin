@@ -316,8 +316,8 @@
         if (data) {
             userBalance = Number(data.balance);
             freeCodeUsed = Boolean(data.free_promo_used);
-        } else {
-            userBalance = 50.00;
+        } else } else {
+            userBalance = 0.00;
             freeCodeUsed = false;
             await sbClient.from('players').insert({
                 player_name: playerName,
