@@ -25,8 +25,10 @@
         header { background: rgba(24, 28, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 24px; font-weight: 800; background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; }
         .nav-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .player-tag-box { display: flex; align-items: center; gap: 6px; background: var(--bg-dark); padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; }
-        .player-tag-input { background: transparent; border: none; color: var(--primary); font-weight: 700; width: 120px; font-size: 13px; outline: none; }
+        .user-badge-box { display: flex; align-items: center; gap: 8px; background: var(--bg-dark); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 13px; }
+        .user-pseudo-label { color: var(--primary); font-weight: 700; }
+        .btn-logout { background: transparent; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 4px; }
+        .btn-auth-open { background: rgba(0, 242, 254, 0.12); border: 1px solid var(--primary); color: var(--primary); padding: 7px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 700; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .wallet { display: flex; align-items: center; gap: 12px; background: var(--bg-dark); padding: 6px 14px; border-radius: 30px; border: 1px solid var(--border); }
         .balance { font-weight: 700; color: var(--accent); font-size: 15px; }
@@ -70,7 +72,6 @@
         .btn-play { width: 100%; padding: 16px; font-size: 17px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; background: linear-gradient(90deg, var(--accent), #00d2ff); color: #0f111a; }
         .btn-play.stop-mode { background: var(--danger); color: white; }
         .btn-play:disabled { background: #2a3044; color: #64748b; cursor: not-allowed; }
-        .btn-relaunch { margin-top: 12px; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: #0f111a; border: none; padding: 11px 20px; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; }
         .result-box { margin-top: 18px; padding: 15px; border-radius: 10px; background: var(--bg-dark); text-align: center; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid var(--border); }
         .leaderboard-list { list-style: none; }
         .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 12px; border-bottom: 1px solid var(--border); font-size: 14px; gap: 10px; }
@@ -89,6 +90,14 @@
         .modal-close { position: absolute; top: 18px; right: 18px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
         .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
         .modal-subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+        .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; background: var(--bg-dark); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
+        .auth-tab { background: transparent; border: none; color: var(--text-muted); padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .auth-tab.active { background: var(--bg-card-hover); color: var(--primary); }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .form-input { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 11px 14px; border-radius: 10px; font-size: 14px; outline: none; }
+        .form-input:focus { border-color: var(--primary); }
+        .auth-feedback { margin-top: 12px; font-size: 13px; text-align: center; min-height: 20px; }
         .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
         .amount-btn { background: var(--bg-dark); border: 2px solid var(--border); color: var(--text-main); padding: 12px 6px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; text-align: center; }
         .amount-btn span { display: block; font-size: 11px; color: var(--accent); }
@@ -116,14 +125,13 @@
 <header>
     <div class="logo">🎯 SkillWin</div>
     <div class="nav-actions">
-        <div class="player-tag-box">
-            <span>👤</span>
-            <input type="text" id="player-name-input" class="player-tag-input" value="Joueur_1" maxlength="16" onchange="handlePlayerChange()">
+        <div id="auth-header-area">
+            <button class="btn-auth-open" onclick="openAuthModal('login')">👤 Connexion / Inscription</button>
         </div>
         <button class="btn-outline" onclick="openModal('rules-modal')">📜 Règlement &amp; CGJ</button>
         <div class="wallet">
             <span>Solde : <span class="balance" id="user-balance">0.00 €</span></span>
-            <button class="btn-deposit" onclick="openModal('payment-modal')">+ Recharger</button>
+            <button class="btn-deposit" onclick="handleDepositClick()">+ Recharger</button>
         </div>
     </div>
 </header>
@@ -154,7 +162,6 @@
             <div class="winner-banner" id="winner-banner">
                 <h4>🏆 PALIER ATTEINT — SESSION CLÔTURÉE !</h4>
                 <p id="winner-announcement" style="margin-top: 6px; font-size: 14px;"></p>
-                <button class="btn-relaunch" id="relaunch-btn" onclick="relaunchCurrentPrize()">🔄 Relancer une nouvelle session</button>
             </div>
 
             <div class="telemetry-bar">
@@ -198,6 +205,39 @@
     </div>
 </main>
 
+<!-- Fenêtre Connexion / Inscription -->
+<div class="modal-overlay" id="auth-modal">
+    <div class="modal-box" style="max-width: 430px;">
+        <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+        <div class="modal-title">🔐 Espace Joueur</div>
+        <p class="modal-subtitle">Votre solde est protégé et lié à votre compte personnel.</p>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Connexion</button>
+            <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Créer un compte</button>
+        </div>
+
+        <div class="form-group" id="signup-pseudo-group" style="display: none;">
+            <label class="form-label">Pseudo affiché dans le classement</label>
+            <input type="text" id="auth-pseudo" class="form-input" placeholder="Ex: AlexWin" maxlength="16">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Adresse e-mail</label>
+            <input type="email" id="auth-email" class="form-input" placeholder="joueur@exemple.com">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Mot de passe (6 caractères minimum)</label>
+            <input type="password" id="auth-password" class="form-input" placeholder="••••••••">
+        </div>
+
+        <button class="btn-confirm-pay" id="auth-submit-btn" onclick="submitAuth()">Se connecter</button>
+        <div class="auth-feedback" id="auth-feedback"></div>
+    </div>
+</div>
+
+<!-- Fenêtre Paiement / Recharge -->
 <div class="modal-overlay" id="payment-modal">
     <div class="modal-box">
         <button class="modal-close" onclick="closeModal('payment-modal')">✕</button>
@@ -222,13 +262,14 @@
             <div class="method-card" onclick="selectMethod('card', this)"><div>💳 Carte Bancaire (Stripe)</div><span>3D-Secure</span></div>
             <div class="method-card" onclick="selectMethod('apple', this)"><div>📱 Apple / Google Pay</div><span>Mobile</span></div>
         </div>
-        <button class="btn-confirm-pay paypal-style" id="confirm-pay-btn" onclick="processPayment()">Payer 20.00 € avec PayPal (+2.00 € offerts)</button>
+        <button class="btn-confirm-pay paypal-style" id="confirm-pay-btn" onclick="processPayment()">Payer 20.00 € (+2.00 € offerts)</button>
         <div class="pay-notice" id="payment-status-msg">
             🔒 Paiement sécurisé : le solde de votre compte joueur est crédité automatiquement dès validation de la transaction.
         </div>
     </div>
 </div>
 
+<!-- Fenêtre Règlement -->
 <div class="modal-overlay" id="rules-modal">
     <div class="modal-box">
         <button class="modal-close" onclick="closeModal('rules-modal')">✕</button>
@@ -243,7 +284,7 @@
 <footer>
     <div class="footer-links">
         <a onclick="openModal('rules-modal')">📜 Règlement Officiel</a>
-        <a onclick="openModal('payment-modal')">💳 Recharger</a>
+        <a onclick="handleDepositClick()">💳 Recharger</a>
     </div>
     <p>© 2026 SkillWin — Réservé aux personnes majeures (+18 ans).</p>
 </footer>
@@ -252,7 +293,7 @@
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
-    // Liens de paiement Stripe sans pseudo en dur : le vrai pseudo du joueur est ajouté automatiquement au clic
+    // Vos 4 liens de paiement Stripe en mode Live (l'identifiant user_id est ajouté automatiquement au clic)
     const STRIPE_PAYMENT_LINKS = {
         10: 'https://buy.stripe.com/28EcN78brdYK55H2vW4ow01',
         20: 'https://buy.stripe.com/fZu00lfDTcUG9lX3A04ow02',
@@ -261,16 +302,19 @@
     };
 
     let prizes = [
-        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 398, max: 400, speed: 1.75, scores: [] },
-        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 347, max: 350, speed: 1.65, scores: [] },
-        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 214, max: 280, speed: 1.45, scores: [] },
-        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 189, max: 270, speed: 1.50, scores: [] },
-        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 299, max: 300, speed: 1.55, scores: [] }
+        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 0, max: 400, speed: 1.75, scores: [] },
+        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 0, max: 350, speed: 1.65, scores: [] },
+        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 0, max: 280, speed: 1.45, scores: [] },
+        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 0, max: 270, speed: 1.50, scores: [] },
+        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 0, max: 300, speed: 1.55, scores: [] }
     ];
 
     let activePrizeId = 'iphone17', userBalance = 0.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
     let selectedAmount = 20, selectedBonus = 2, selectedMethod = 'paypal', freeCodeUsed = false;
     let sbClient = null;
+    let currentUser = null;
+    let currentPlayerPseudo = 'Visiteur';
+    let authMode = 'login';
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -282,16 +326,25 @@
     const liveChronoEl = document.getElementById('live-chrono');
     const recordDisplayEl = document.getElementById('record-display');
     const dbStatusEl = document.getElementById('db-status');
-    const playerNameInput = document.getElementById('player-name-input');
     const paymentStatusMsg = document.getElementById('payment-status-msg');
-
-    function getPlayerName() {
-        const clean = playerNameInput.value.trim();
-        return clean || 'Joueur_1';
-    }
+    const authHeaderArea = document.getElementById('auth-header-area');
 
     function updateBalanceDisplay() {
         balanceEl.textContent = Number(userBalance).toFixed(2) + ' €';
+    }
+
+    function updateAuthHeaderUI() {
+        if (currentUser) {
+            authHeaderArea.innerHTML = `
+                <div class="user-badge-box">
+                    <span>👤</span>
+                    <span class="user-pseudo-label">${currentPlayerPseudo}</span>
+                    <button class="btn-logout" onclick="logoutPlayer()">Déconnexion</button>
+                </div>
+            `;
+        } else {
+            authHeaderArea.innerHTML = `<button class="btn-auth-open" onclick="openAuthModal('login')">👤 Connexion / Inscription</button>`;
+        }
     }
 
     function updatePromoUI() {
@@ -303,50 +356,124 @@
         }
     }
 
-    async function syncPlayerProfile(playerName) {
+    function openAuthModal(mode = 'login') {
+        switchAuthTab(mode);
+        document.getElementById('auth-feedback').textContent = '';
+        openModal('auth-modal');
+    }
+
+    function switchAuthTab(mode) {
+        authMode = mode;
+        document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+        document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+        document.getElementById('signup-pseudo-group').style.display = mode === 'signup' ? 'block' : 'none';
+        document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Se connecter' : 'Créer mon compte';
+        document.getElementById('auth-feedback').textContent = '';
+    }
+
+    async function submitAuth() {
         if (!sbClient) return;
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value;
+        const pseudoInput = document.getElementById('auth-pseudo').value.trim();
+        const feedback = document.getElementById('auth-feedback');
+
+        if (!email || password.length < 6) {
+            feedback.innerHTML = '<span style="color:var(--danger);">Entrez un e-mail valide et un mot de passe de 6 caractères minimum.</span>';
+            return;
+        }
+
+        if (authMode === 'signup') {
+            const cleanPseudo = pseudoInput || email.split('@')[0].slice(0, 16);
+            feedback.innerHTML = '<span style="color:var(--primary);">Création du compte en cours...</span>';
+            const { data, error } = await sbClient.auth.signUp({
+                email,
+                password,
+                options: { data: { pseudo: cleanPseudo } }
+            });
+            if (error) {
+                feedback.innerHTML = `<span style="color:var(--danger);">${error.message}</span>`;
+                return;
+            }
+            if (data.user && !data.session) {
+                feedback.innerHTML = '<span style="color:var(--accent);">✅ Compte créé ! Vérifiez votre boîte e-mail pour confirmer votre inscription.</span>';
+                return;
+            }
+            closeModal('auth-modal');
+        } else {
+            feedback.innerHTML = '<span style="color:var(--primary);">Connexion en cours...</span>';
+            const { error } = await sbClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                feedback.innerHTML = '<span style="color:var(--danger);">E-mail ou mot de passe incorrect.</span>';
+                return;
+            }
+            closeModal('auth-modal');
+        }
+    }
+
+    async function logoutPlayer() {
+        if (!sbClient || isPlaying) return;
+        await sbClient.auth.signOut();
+        currentUser = null;
+        currentPlayerPseudo = 'Visiteur';
+        userBalance = 0.00;
+        freeCodeUsed = false;
+        updateAuthHeaderUI();
+        updateBalanceDisplay();
+        updatePromoUI();
+        updateArena();
+    }
+
+    async function syncPlayerProfile(user) {
+        if (!sbClient || !user) return;
+        currentUser = user;
+        const metaPseudo = user.user_metadata?.pseudo;
+        const fallbackPseudo = user.email ? user.email.split('@')[0].slice(0, 16) : 'Joueur';
+
         const { data, error } = await sbClient
             .from('players')
             .select('*')
-            .eq('player_name', playerName)
+            .eq('user_id', user.id)
             .maybeSingle();
 
         if (error) return;
 
         if (data) {
+            currentPlayerPseudo = data.player_name || metaPseudo || fallbackPseudo;
             userBalance = Number(data.balance);
             freeCodeUsed = Boolean(data.free_promo_used);
         } else {
+            currentPlayerPseudo = metaPseudo || fallbackPseudo;
             userBalance = 0.00;
             freeCodeUsed = false;
             await sbClient.from('players').insert({
-                player_name: playerName,
+                user_id: user.id,
+                player_name: currentPlayerPseudo,
                 balance: userBalance,
                 free_promo_used: freeCodeUsed
             });
         }
+        updateAuthHeaderUI();
         updateBalanceDisplay();
         updatePromoUI();
+        updateArena();
     }
 
     async function savePlayerProfile() {
-        if (!sbClient) return;
-        const playerName = getPlayerName();
-        await sbClient.from('players').upsert({
-            player_name: playerName,
+        if (!sbClient || !currentUser) return;
+        await sbClient.from('players').update({
             balance: Number(userBalance.toFixed(2)),
             free_promo_used: freeCodeUsed,
             updated_at: new Date().toISOString()
-        }, { onConflict: 'player_name' });
+        }).eq('user_id', currentUser.id);
     }
 
-    async function handlePlayerChange() {
-        if (isPlaying) return;
-        const clean = getPlayerName();
-        playerNameInput.value = clean;
-        localStorage.setItem('skillwin_player_name', clean);
-        await syncPlayerProfile(clean);
-        updateArena();
+    function handleDepositClick() {
+        if (!currentUser) {
+            openAuthModal('login');
+            return;
+        }
+        openModal('payment-modal');
     }
 
     function checkPaymentReturnUrl() {
@@ -356,7 +483,7 @@
             paymentStatusMsg.innerHTML = '<span style="color:var(--accent);">✅ Paiement confirmé : actualisation de votre solde en cours...</span>';
             openModal('payment-modal');
             window.history.replaceState({}, document.title, window.location.pathname);
-            setTimeout(() => syncPlayerProfile(getPlayerName()), 2500);
+            setTimeout(() => { if (currentUser) syncPlayerProfile(currentUser); }, 2500);
         } else if (paymentState === 'cancel' || paymentState === 'cancelled') {
             paymentStatusMsg.innerHTML = '<span style="color:var(--danger);">❌ Paiement annulé. Aucun montant n’a été débité.</span>';
             openModal('payment-modal');
@@ -368,10 +495,7 @@
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
 
     async function loadDataFromSupabase() {
-        const savedName = localStorage.getItem('skillwin_player_name');
-        if (savedName) {
-            playerNameInput.value = savedName;
-        }
+        updateAuthHeaderUI();
         updateBalanceDisplay();
         updatePromoUI();
         checkPaymentReturnUrl();
@@ -383,6 +507,24 @@
             }
 
             sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            sbClient.auth.onAuthStateChange(async (_event, session) => {
+                if (session?.user) {
+                    await syncPlayerProfile(session.user);
+                } else {
+                    currentUser = null;
+                    currentPlayerPseudo = 'Visiteur';
+                    userBalance = 0.00;
+                    updateAuthHeaderUI();
+                    updateBalanceDisplay();
+                    updateArena();
+                }
+            });
+
+            const { data: sessionData } = await sbClient.auth.getSession();
+            if (sessionData?.session?.user) {
+                await syncPlayerProfile(sessionData.session.user);
+            }
 
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Délai dépassé (5s) — vérifiez URL/clé')), 5000)
@@ -424,9 +566,7 @@
                 });
             }
 
-            await syncPlayerProfile(getPlayerName());
-
-            dbStatusEl.textContent = '🟢 Connecté à Supabase (Temps réel)';
+            dbStatusEl.textContent = '🟢 Connecté à Supabase (Sécurisé)';
             renderPrizes();
             updateArena();
         } catch (e) {
@@ -455,23 +595,10 @@
         updateArena(); renderPrizes();
     }
 
-    async function relaunchCurrentPrize() {
-        if (isPlaying) return;
-        const prize = getActivePrize();
-        prize.current = 0; prize.scores = []; prize.tag = '🆕 Nouvelle session';
-        if (sbClient) {
-            await sbClient.from('scores').delete().eq('competition_id', prize.id);
-            await sbClient.from('competitions').update({ current_entries: 0, tag: '🆕 Nouvelle session' }).eq('id', prize.id);
-        }
-        position = 0; cursorEl.style.left = '0%'; liveChronoEl.textContent = '0.000 s';
-        renderPrizes(); updateArena();
-    }
-
     function updateArena() {
         const prize = getActivePrize();
         sortScores(prize.scores);
         const isFull = prize.current >= prize.max;
-        const currentPlayer = getPlayerName();
         document.getElementById('active-prize-name').textContent = `${prize.icon} ${prize.name}`;
         document.getElementById('active-prize-sub').textContent = `Mise : ${prize.cost.toFixed(2)} € • Palier : ${prize.max} participations`;
         const statusPill = document.getElementById('session-status');
@@ -483,9 +610,10 @@
             const winner = prize.scores[0] || { player: 'Aucun joueur', diff: 0, time: 0 };
             winnerBanner.classList.add('show');
             document.getElementById('winner-announcement').innerHTML = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
-            document.getElementById('relaunch-btn').textContent = `🔄 Relancer une nouvelle session (0/${prize.max})`;
         } else {
-            actionBtn.disabled = false; actionBtn.textContent = `Miser ${prize.cost.toFixed(2)} € et Jouer`; actionBtn.className = 'btn-play';
+            actionBtn.disabled = false;
+            actionBtn.textContent = currentUser ? `Miser ${prize.cost.toFixed(2)} € et Jouer` : 'Connectez-vous pour Jouer';
+            actionBtn.className = 'btn-play';
             winnerBanner.classList.remove('show');
         }
         leaderboardList.innerHTML = prize.scores.length ? '' : '<li style="text-align:center;color:var(--text-muted);padding:20px;">Aucune participation enregistrée.</li>';
@@ -493,7 +621,8 @@
             const li = document.createElement('li');
             li.className = `leaderboard-item ${index === 0 ? 'top-1' : ''}`;
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-            li.innerHTML = `<div class="player-info"><span class="rank">${medal}</span><span><strong>${entry.player}</strong> ${entry.player === currentPlayer ? '(Moi)' : ''}</span></div><div class="score-details"><span class="score-val">Écart : ${entry.diff.toFixed(3)}%</span><span class="time-val">⏱️ ${entry.time.toFixed(3)} s</span></div>`;
+            const isMe = currentUser && entry.player === currentPlayerPseudo;
+            li.innerHTML = `<div class="player-info"><span class="rank">${medal}</span><span><strong>${entry.player}</strong> ${isMe ? '(Moi)' : ''}</span></div><div class="score-details"><span class="score-val">Écart : ${entry.diff.toFixed(3)}%</span><span class="time-val">⏱️ ${entry.time.toFixed(3)} s</span></div>`;
             leaderboardList.appendChild(li);
         });
     }
@@ -509,10 +638,17 @@
     }
 
     async function handleGameAction() {
+        if (!currentUser) {
+            openAuthModal('login');
+            return;
+        }
         const prize = getActivePrize();
-        const currentPlayer = getPlayerName();
         if (!isPlaying) {
-            if (prize.current >= prize.max || userBalance < prize.cost) return;
+            if (prize.current >= prize.max) return;
+            if (userBalance < prize.cost) {
+                openModal('payment-modal');
+                return;
+            }
             userBalance = Number((userBalance - prize.cost).toFixed(2));
             updateBalanceDisplay();
             await savePlayerProfile();
@@ -525,10 +661,10 @@
             liveChronoEl.textContent = `${reactionTime.toFixed(3)} s`;
             const diff = parseFloat(Math.abs(50 - position).toFixed(3));
             const nextCount = prize.current + 1;
-            prize.current = nextCount; prize.scores.push({ player: currentPlayer, diff, time: reactionTime });
+            prize.current = nextCount; prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
             sortScores(prize.scores);
             if (sbClient) {
-                await sbClient.from('scores').insert({ competition_id: prize.id, player_name: currentPlayer, diff, reaction_time: reactionTime });
+                await sbClient.from('scores').insert({ competition_id: prize.id, player_name: currentPlayerPseudo, diff, reaction_time: reactionTime });
                 await sbClient.from('competitions').update({ current_entries: nextCount }).eq('id', prize.id);
             }
             resultBox.innerHTML = `Écart : <strong>${diff.toFixed(3)}%</strong> • Temps : <strong>${reactionTime.toFixed(3)} s</strong>`;
@@ -546,7 +682,13 @@
         btn.className = selectedMethod === 'paypal' ? 'btn-confirm-pay paypal-style' : 'btn-confirm-pay';
         btn.textContent = `Payer ${selectedAmount.toFixed(2)} €${bonusTxt}`;
     }
+
     async function claimFreeCredit() {
+        if (!currentUser) {
+            closeModal('payment-modal');
+            openAuthModal('login');
+            return;
+        }
         if (freeCodeUsed) {
             updatePromoUI();
             return;
@@ -560,20 +702,22 @@
             await savePlayerProfile();
         }
     }
+
     async function processPayment() {
+        if (!currentUser) {
+            closeModal('payment-modal');
+            openAuthModal('login');
+            return;
+        }
         const stripeUrl = STRIPE_PAYMENT_LINKS[selectedAmount];
         if (stripeUrl && stripeUrl.startsWith('https://')) {
-            const playerName = getPlayerName();
-            playerNameInput.value = playerName;
-            localStorage.setItem('skillwin_player_name', playerName);
-            await syncPlayerProfile(playerName);
-
+            await syncPlayerProfile(currentUser);
             const urlWithRef = new URL(stripeUrl);
-            urlWithRef.searchParams.set('client_reference_id', playerName);
+            urlWithRef.searchParams.set('client_reference_id', currentUser.id);
             window.location.href = urlWithRef.toString();
             return;
         }
-        paymentStatusMsg.innerHTML = `⚠️ Passerelle <strong>${selectedMethod.toUpperCase()}</strong> non encore configurée pour ${selectedAmount.toFixed(2)} €. Ajoutez vos liens Stripe ou votre SDK PayPal + webhook Supabase avant de créditer des fonds réels.`;
+        paymentStatusMsg.innerHTML = `⚠️ Lien Stripe non configuré pour ${selectedAmount.toFixed(2)} €.`;
     }
 
     loadDataFromSupabase();
