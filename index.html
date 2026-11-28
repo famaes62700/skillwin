@@ -315,6 +315,8 @@
     let currentUser = null;
     let currentPlayerPseudo = 'Visiteur';
     let authMode = 'login';
+    let winnerBannerTimeout = null;
+    let isShowingWinnerBanner = false;
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -505,14 +507,35 @@
                 if (!target) return;
 
                 const nextEntries = Number(updated.current_entries);
+                const previousScores = [...target.scores];
+
                 if (nextEntries === 0 && target.current > 0) {
-                    target.scores = [];
+                    const topWinner = previousScores[0];
+                    if (topWinner && target.id === activePrizeId) {
+                        isShowingWinnerBanner = true;
+                        winnerBanner.classList.add('show');
+                        document.getElementById('winner-announcement').innerHTML =
+                            `<strong>${topWinner.player}</strong> remporte <strong>${target.name}</strong> (${topWinner.diff.toFixed(3)}% en ${topWinner.time.toFixed(3)}s) !`;
+                    }
+
+                    if (winnerBannerTimeout) clearTimeout(winnerBannerTimeout);
+                    winnerBannerTimeout = setTimeout(() => {
+                        isShowingWinnerBanner = false;
+                        target.scores = [];
+                        target.current = 0;
+                        renderPrizes();
+                        updateArena();
+                    }, 8000);
+                    return;
                 }
+
                 target.current = nextEntries;
                 renderPrizes();
                 updateArena();
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, async () => {
+                if (isShowingWinnerBanner) return;
+
                 const { data: freshScores } = await sbClient.from('scores').select('*');
                 if (!freshScores) return;
 
@@ -648,7 +671,9 @@
             actionBtn.disabled = false;
             actionBtn.textContent = currentUser ? `Miser ${prize.cost.toFixed(2)} € et Jouer` : 'Connectez-vous pour Jouer';
             actionBtn.className = 'btn-play';
-            winnerBanner.classList.remove('show');
+            if (!isShowingWinnerBanner) {
+                winnerBanner.classList.remove('show');
+            }
         }
         leaderboardList.innerHTML = prize.scores.length ? '' : '<li style="text-align:center;color:var(--text-muted);padding:20px;">Aucune participation enregistrée.</li>';
         prize.scores.forEach((entry, index) => {
