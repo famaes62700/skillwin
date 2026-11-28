@@ -301,12 +301,14 @@
         100: 'https://buy.stripe.com/eVq3cx63j6wiaq17Qg4ow04'
     };
 
+    const BANNER_DURATION_MS = 25000;
+
     let prizes = [
-        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 0, max: 400, speed: 1.75, scores: [], lastWinner: null },
-        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 0, max: 350, speed: 1.65, scores: [], lastWinner: null },
-        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 0, max: 280, speed: 1.45, scores: [], lastWinner: null },
-        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 0, max: 270, speed: 1.50, scores: [], lastWinner: null },
-        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 0, max: 300, speed: 1.55, scores: [], lastWinner: null }
+        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 0, max: 400, speed: 1.75, scores: [], lastWinner: null, frozenScores: null },
+        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 0, max: 350, speed: 1.65, scores: [], lastWinner: null, frozenScores: null },
+        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 0, max: 280, speed: 1.45, scores: [], lastWinner: null, frozenScores: null },
+        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 0, max: 270, speed: 1.50, scores: [], lastWinner: null, frozenScores: null },
+        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 0, max: 300, speed: 1.55, scores: [], lastWinner: null, frozenScores: null }
     ];
 
     let activePrizeId = 'iphone17', userBalance = 0.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
@@ -508,25 +510,34 @@
         }
     }
 
-    function triggerWinnerBanner(prize, winner) {
+    function triggerWinnerBanner(prize, winner, scoresSnapshot = null) {
         if (!winner) return;
         prize.lastWinner = { ...winner };
-        bannerPrizeId = prize.id;
-        bannerUntil = Date.now() + 25000;
-        bannerWinnerText = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+        prize.frozenScores = (scoresSnapshot && scoresSnapshot.length > 0)
+            ? scoresSnapshot.map(s => ({ ...s }))
+            : [{ ...winner }];
 
-        if (prize.id === activePrizeId) {
-            winnerBanner.classList.add('show');
-            document.getElementById('winner-announcement').innerHTML = bannerWinnerText;
-        }
+        bannerPrizeId = prize.id;
+        bannerUntil = Date.now() + BANNER_DURATION_MS;
+        bannerWinnerText = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
 
         if (winnerBannerTimeout) clearTimeout(winnerBannerTimeout);
         winnerBannerTimeout = setTimeout(() => {
             bannerUntil = 0;
             bannerPrizeId = null;
             bannerWinnerText = '';
+            prizes.forEach(p => {
+                p.frozenScores = null;
+                if (p.current === 0) {
+                    p.scores = [];
+                }
+            });
+            renderPrizes();
             updateArena();
-        }, 25000);
+        }, BANNER_DURATION_MS);
+
+        renderPrizes();
+        updateArena();
     }
 
     function subscribeToRealtimeUpdates() {
@@ -540,16 +551,20 @@
                 if (!target) return;
 
                 const nextEntries = Number(updated.current_entries);
-                const winnerToShow = target.scores[0] || target.lastWinner;
+                const snapshot = (target.scores && target.scores.length > 0)
+                    ? [...target.scores]
+                    : (target.frozenScores ? [...target.frozenScores] : []);
+                const winnerToShow = snapshot[0] || target.lastWinner;
 
                 if (nextEntries === 0 && target.current > 0) {
-                    if (winnerToShow) {
-                        triggerWinnerBanner(target, winnerToShow);
-                    }
-                    target.scores = [];
                     target.current = 0;
-                    renderPrizes();
-                    updateArena();
+                    target.scores = [];
+                    if (winnerToShow) {
+                        triggerWinnerBanner(target, winnerToShow, snapshot);
+                    } else {
+                        renderPrizes();
+                        updateArena();
+                    }
                     return;
                 }
 
@@ -561,6 +576,7 @@
                 const { data: freshScores } = await sbClient.from('scores').select('*');
                 if (!freshScores) return;
 
+                const now = Date.now();
                 prizes.forEach(p => {
                     const mapped = freshScores
                         .filter(s => s.competition_id === p.id)
@@ -569,7 +585,10 @@
                     if (mapped.length > 0) {
                         p.lastWinner = { ...mapped[0] };
                     }
-                    p.scores = mapped;
+                    const isBannerLockedForPrize = bannerPrizeId === p.id && now < bannerUntil;
+                    if (!isBannerLockedForPrize || mapped.length > 0) {
+                        p.scores = mapped;
+                    }
                 });
                 updateArena();
             })
@@ -644,7 +663,8 @@
                         max: Number(c.max_entries),
                         speed: Number(c.speed),
                         scores: compScores,
-                        lastWinner: compScores[0] ? { ...compScores[0] } : null
+                        lastWinner: compScores[0] ? { ...compScores[0] } : null,
+                        frozenScores: null
                     };
                 });
             }
@@ -681,21 +701,27 @@
 
     function updateArena() {
         const prize = getActivePrize();
-        sortScores(prize.scores);
+        const now = Date.now();
+        const showingActiveBanner = bannerPrizeId === prize.id && now < bannerUntil;
+
+        const displayedScores = (showingActiveBanner && prize.frozenScores && prize.frozenScores.length > 0)
+            ? [...prize.frozenScores]
+            : [...prize.scores];
+
+        sortScores(displayedScores);
         refreshLastWinnerForPrize(prize);
+
         const isFull = prize.current >= prize.max;
         document.getElementById('active-prize-name').textContent = `${prize.icon} ${prize.name}`;
         document.getElementById('active-prize-sub').textContent = `Mise : ${prize.cost.toFixed(2)} € • Palier : ${prize.max} participations`;
         const statusPill = document.getElementById('session-status');
         statusPill.textContent = isFull ? `CLÔTURÉ (${prize.current}/${prize.max})` : `EN COURS (${prize.current}/${prize.max})`;
         statusPill.className = `status-pill ${isFull ? 'closed' : ''}`;
-        recordDisplayEl.textContent = prize.scores.length ? `${prize.scores[0].diff.toFixed(3)}% (${prize.scores[0].time.toFixed(3)}s)` : 'Aucun score';
-
-        const showingActiveBanner = bannerPrizeId === prize.id && Date.now() < bannerUntil;
+        recordDisplayEl.textContent = displayedScores.length ? `${displayedScores[0].diff.toFixed(3)}% (${displayedScores[0].time.toFixed(3)}s)` : 'Aucun score';
 
         if (isFull) {
             actionBtn.disabled = true; actionBtn.textContent = 'Session terminée'; actionBtn.className = 'btn-play';
-            const winner = prize.scores[0] || prize.lastWinner;
+            const winner = displayedScores[0] || prize.lastWinner;
             winnerBanner.classList.add('show');
             if (winner) {
                 document.getElementById('winner-announcement').innerHTML = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
@@ -713,8 +739,9 @@
                 winnerBanner.classList.remove('show');
             }
         }
-        leaderboardList.innerHTML = prize.scores.length ? '' : '<li style="text-align:center;color:var(--text-muted);padding:20px;">Aucune participation enregistrée.</li>';
-        prize.scores.forEach((entry, index) => {
+
+        leaderboardList.innerHTML = displayedScores.length ? '' : '<li style="text-align:center;color:var(--text-muted);padding:20px;">Aucune participation enregistrée.</li>';
+        displayedScores.forEach((entry, index) => {
             const li = document.createElement('li');
             li.className = `leaderboard-item ${index === 0 ? 'top-1' : ''}`;
             const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
@@ -783,13 +810,14 @@
                     updateBalanceDisplay();
                 }
 
-                prize.scores = candidateScores;
                 refreshLastWinnerForPrize(prize);
 
                 if (typeof data.currentEntries === 'number') {
                     if (data.currentEntries >= prize.max) {
-                        triggerWinnerBanner(prize, candidateWinner);
+                        prize.scores = [];
+                        triggerWinnerBanner(prize, candidateWinner, candidateScores);
                     } else {
+                        prize.scores = candidateScores;
                         prize.current = Number(data.currentEntries);
                     }
                 }
