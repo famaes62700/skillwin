@@ -209,7 +209,7 @@
         <div class="panel">
             <div class="panel-header">
                 <h3>🏅 Classement de la session</h3>
-                <span style="font-size: 11px; color: var(--text-muted);">Tri : Écart ➔ Chrono</span>
+                <span style="font-size: 11px; color: var(--text-muted);">Tri : Écart ➔ Chrono ➔ Priorité</span>
             </div>
             <ul class="leaderboard-list" id="leaderboard-list"></ul>
         </div>
@@ -287,7 +287,7 @@
         <div class="modal-title">📜 Règlement Officiel (CGJ)</div>
         <p class="modal-subtitle">SkillWin — Compétitions d'adresse sans hasard</p>
         <div class="rules-section"><h4>Article 1 — Jeu d'adresse</h4><p>Épreuve identique pour tous les participants, cible fixe à 50.000%, aucun tirage au sort.</p></div>
-        <div class="rules-section"><h4>Article 2 — Départage au millième</h4><p>En cas d'égalité d'écart, le temps de réaction le plus court en secondes l'emporte.</p></div>
+        <div class="rules-section"><h4>Article 2 — Départage au millième et égalité absolue</h4><p>Le classement et la victoire reviennent au joueur ayant obtenu le plus faible écart par rapport à 50.000%. En cas d'égalité d'écart, le temps de réaction le plus court en secondes l'emporte. Si une égalité parfaite persiste sur l'écart et le temps de réaction, le premier joueur à avoir enregistré le score est déclaré vainqueur.</p></div>
         <button class="btn-confirm-pay" onclick="closeModal('rules-modal')">Fermer</button>
     </div>
 </div>
@@ -332,6 +332,7 @@
     let bannerPrizeId = null;
     let bannerUntil = 0;
     let bannerWinnerText = '';
+    let scoreSeqCounter = 0;
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -508,8 +509,27 @@
         }
     }
 
+    function mapScoreRow(s, fallbackSeq) {
+        const createdTs = s.created_at ? Date.parse(s.created_at) : NaN;
+        const seq = Number.isFinite(createdTs) ? createdTs : (s._seq ?? fallbackSeq ?? ++scoreSeqCounter);
+        return {
+            player: s.player_name,
+            diff: Number(s.diff),
+            time: Number(s.reaction_time),
+            _seq: seq
+        };
+    }
+
     function sortScores(arr) {
-        arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time);
+        arr.sort((a, b) => {
+            if (Math.abs(a.diff - b.diff) > 0.00001) {
+                return a.diff - b.diff;
+            }
+            if (Math.abs(a.time - b.time) > 0.00001) {
+                return a.time - b.time;
+            }
+            return (a._seq ?? 0) - (b._seq ?? 0);
+        });
         return arr;
     }
 
@@ -591,7 +611,7 @@
                 prizes.forEach(p => {
                     const mapped = freshScores
                         .filter(s => s.competition_id === p.id)
-                        .map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
+                        .map((s, idx) => mapScoreRow(s, idx));
                     sortScores(mapped);
                     if (mapped.length > 0) {
                         p.lastWinner = { ...mapped[0] };
@@ -661,7 +681,7 @@
                 prizes = compRes.data.map(c => {
                     const compScores = (scoreRes.data || [])
                         .filter(s => s.competition_id === c.id)
-                        .map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
+                        .map((s, idx) => mapScoreRow(s, idx));
                     sortScores(compScores);
                     return {
                         id: c.id,
@@ -794,7 +814,7 @@
             const reactionTime = parseFloat(((performance.now() - startTime) / 1000).toFixed(3));
             liveChronoEl.textContent = `${reactionTime.toFixed(3)} s`;
             const diff = parseFloat(Math.abs(50 - position).toFixed(3));
-            const newEntry = { player: currentPlayerPseudo, diff, time: reactionTime };
+            const newEntry = { player: currentPlayerPseudo, diff, time: reactionTime, _seq: Date.now() + (++scoreSeqCounter) };
             const candidateScores = sortScores([...prize.scores, newEntry]);
             const candidateWinner = candidateScores[0] || newEntry;
 
