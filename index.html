@@ -302,11 +302,11 @@
     };
 
     let prizes = [
-        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 0, max: 400, speed: 1.75, scores: [] },
-        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 0, max: 350, speed: 1.65, scores: [] },
-        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 0, max: 280, speed: 1.45, scores: [] },
-        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 0, max: 270, speed: 1.50, scores: [] },
-        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 0, max: 300, speed: 1.55, scores: [] }
+        { id: 'iphone17', name: 'iPhone 17 Pro Max (256 Go)', value: 'Valeur : 1 479 €', tag: '🔥 N°1 Tech', icon: '📱', cost: 5.00, current: 0, max: 400, speed: 1.75, scores: [], lastWinner: null },
+        { id: 'ps5pro', name: 'PlayStation 5 Pro', value: 'Valeur : 799 €', tag: '🎮 N°1 Gaming', icon: '🕹️', cost: 3.00, current: 0, max: 350, speed: 1.65, scores: [], lastWinner: null },
+        { id: 'switch2', name: 'Nintendo Switch 2', value: 'Valeur : 449 €', tag: '⭐ Populaire', icon: '🎮', cost: 2.00, current: 0, max: 280, speed: 1.45, scores: [], lastWinner: null },
+        { id: 'dyson', name: 'Dyson Airwrap i.d.™', value: 'Valeur : 549 €', tag: '✨ Viral', icon: '💇‍♀️', cost: 2.50, current: 0, max: 270, speed: 1.50, scores: [], lastWinner: null },
+        { id: 'amazon500', name: 'Carte Cadeau Amazon 500 €', value: 'Pouvoir d’achat immédiat', tag: '⚡ Presque plein !', icon: '🎁', cost: 2.00, current: 0, max: 300, speed: 1.55, scores: [], lastWinner: null }
     ];
 
     let activePrizeId = 'iphone17', userBalance = 0.00, isPlaying = false, position = 0, direction = 1, animationId = null, startTime = 0;
@@ -316,7 +316,7 @@
     let currentPlayerPseudo = 'Visiteur';
     let authMode = 'login';
     let winnerBannerTimeout = null;
-    let isShowingWinnerBanner = false;
+    let bannerPrizeId = null;
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -493,8 +493,32 @@
         }
     }
 
-    function sortScores(arr) { return arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time); }
+    function sortScores(arr) {
+        arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time);
+        return arr;
+    }
+
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
+
+    function refreshLastWinnerForPrize(prize) {
+        if (prize.scores.length > 0) {
+            prize.lastWinner = { ...prize.scores[0] };
+        }
+    }
+
+    function triggerWinnerBanner(prize, winner) {
+        if (!winner || prize.id !== activePrizeId) return;
+        bannerPrizeId = prize.id;
+        winnerBanner.classList.add('show');
+        document.getElementById('winner-announcement').innerHTML =
+            `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+
+        if (winnerBannerTimeout) clearTimeout(winnerBannerTimeout);
+        winnerBannerTimeout = setTimeout(() => {
+            bannerPrizeId = null;
+            winnerBanner.classList.remove('show');
+        }, 12000);
+    }
 
     function subscribeToRealtimeUpdates() {
         if (!sbClient) return;
@@ -507,25 +531,16 @@
                 if (!target) return;
 
                 const nextEntries = Number(updated.current_entries);
-                const previousScores = [...target.scores];
+                const winnerToShow = target.scores[0] || target.lastWinner;
 
                 if (nextEntries === 0 && target.current > 0) {
-                    const topWinner = previousScores[0];
-                    if (topWinner && target.id === activePrizeId) {
-                        isShowingWinnerBanner = true;
-                        winnerBanner.classList.add('show');
-                        document.getElementById('winner-announcement').innerHTML =
-                            `<strong>${topWinner.player}</strong> remporte <strong>${target.name}</strong> (${topWinner.diff.toFixed(3)}% en ${topWinner.time.toFixed(3)}s) !`;
+                    if (winnerToShow) {
+                        triggerWinnerBanner(target, winnerToShow);
                     }
-
-                    if (winnerBannerTimeout) clearTimeout(winnerBannerTimeout);
-                    winnerBannerTimeout = setTimeout(() => {
-                        isShowingWinnerBanner = false;
-                        target.scores = [];
-                        target.current = 0;
-                        renderPrizes();
-                        updateArena();
-                    }, 8000);
+                    target.scores = [];
+                    target.current = 0;
+                    renderPrizes();
+                    updateArena();
                     return;
                 }
 
@@ -534,16 +549,18 @@
                 updateArena();
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, async () => {
-                if (isShowingWinnerBanner) return;
-
                 const { data: freshScores } = await sbClient.from('scores').select('*');
                 if (!freshScores) return;
 
                 prizes.forEach(p => {
-                    p.scores = freshScores
+                    const mapped = freshScores
                         .filter(s => s.competition_id === p.id)
                         .map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
-                    sortScores(p.scores);
+                    sortScores(mapped);
+                    if (mapped.length > 0) {
+                        p.lastWinner = { ...mapped[0] };
+                    }
+                    p.scores = mapped;
                 });
                 updateArena();
             })
@@ -617,7 +634,8 @@
                         current: Number(c.current_entries),
                         max: Number(c.max_entries),
                         speed: Number(c.speed),
-                        scores: compScores
+                        scores: compScores,
+                        lastWinner: compScores[0] ? { ...compScores[0] } : null
                     };
                 });
             }
@@ -655,6 +673,7 @@
     function updateArena() {
         const prize = getActivePrize();
         sortScores(prize.scores);
+        refreshLastWinnerForPrize(prize);
         const isFull = prize.current >= prize.max;
         document.getElementById('active-prize-name').textContent = `${prize.icon} ${prize.name}`;
         document.getElementById('active-prize-sub').textContent = `Mise : ${prize.cost.toFixed(2)} € • Palier : ${prize.max} participations`;
@@ -662,16 +681,23 @@
         statusPill.textContent = isFull ? `CLÔTURÉ (${prize.current}/${prize.max})` : `EN COURS (${prize.current}/${prize.max})`;
         statusPill.className = `status-pill ${isFull ? 'closed' : ''}`;
         recordDisplayEl.textContent = prize.scores.length ? `${prize.scores[0].diff.toFixed(3)}% (${prize.scores[0].time.toFixed(3)}s)` : 'Aucun score';
+
+        const showingActiveBanner = bannerPrizeId === prize.id;
+
         if (isFull) {
             actionBtn.disabled = true; actionBtn.textContent = 'Session terminée'; actionBtn.className = 'btn-play';
-            const winner = prize.scores[0] || { player: 'Aucun joueur', diff: 0, time: 0 };
+            const winner = prize.scores[0] || prize.lastWinner || { player: 'Aucun joueur', diff: 0, time: 0 };
             winnerBanner.classList.add('show');
             document.getElementById('winner-announcement').innerHTML = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
         } else {
             actionBtn.disabled = false;
             actionBtn.textContent = currentUser ? `Miser ${prize.cost.toFixed(2)} € et Jouer` : 'Connectez-vous pour Jouer';
             actionBtn.className = 'btn-play';
-            if (!isShowingWinnerBanner) {
+            if (showingActiveBanner && prize.lastWinner) {
+                winnerBanner.classList.add('show');
+                document.getElementById('winner-announcement').innerHTML =
+                    `<strong>${prize.lastWinner.player}</strong> remporte <strong>${prize.name}</strong> (${prize.lastWinner.diff.toFixed(3)}% en ${prize.lastWinner.time.toFixed(3)}s) !`;
+            } else {
                 winnerBanner.classList.remove('show');
             }
         }
@@ -742,16 +768,23 @@
                     updateBalanceDisplay();
                 }
 
-                // Si le palier vient d'être atteint, la remise à zéro sera appliquée par notify-winner et reçue via Realtime
-                if (typeof data.currentEntries === 'number' && data.currentEntries < prize.max) {
-                    prize.current = Number(data.currentEntries);
-                    prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
-                    sortScores(prize.scores);
+                const newEntry = { player: currentPlayerPseudo, diff, time: reactionTime };
+                prize.scores.push(newEntry);
+                sortScores(prize.scores);
+                refreshLastWinnerForPrize(prize);
+
+                if (typeof data.currentEntries === 'number') {
+                    if (data.currentEntries >= prize.max) {
+                        triggerWinnerBanner(prize, prize.scores[0]);
+                    } else {
+                        prize.current = Number(data.currentEntries);
+                    }
                 }
             } else {
                 prize.current = prize.current + 1;
                 prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
                 sortScores(prize.scores);
+                refreshLastWinnerForPrize(prize);
             }
 
             resultBox.innerHTML = `Écart : <strong>${diff.toFixed(3)}%</strong> • Temps : <strong>${reactionTime.toFixed(3)} s</strong>`;
