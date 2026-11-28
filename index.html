@@ -291,6 +291,7 @@
 
 <script>
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
+    // Vérifiez dans Supabase > Settings > API que la clé anon commence bien par "eyJ..."
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
     // Vos 4 liens de paiement Stripe en mode Live (l'identifiant user_id est ajouté automatiquement au clic)
@@ -649,24 +650,50 @@
                 openModal('payment-modal');
                 return;
             }
-            userBalance = Number((userBalance - prize.cost).toFixed(2));
-            updateBalanceDisplay();
-            await savePlayerProfile();
             isPlaying = true; position = 0; direction = 1; startTime = performance.now();
             actionBtn.textContent = 'STOP ! (Cliquez pour figer)'; actionBtn.classList.add('stop-mode');
             animationId = requestAnimationFrame(animateCursor);
         } else {
             isPlaying = false; cancelAnimationFrame(animationId);
+            actionBtn.disabled = true;
+            actionBtn.textContent = 'Validation...';
             const reactionTime = parseFloat(((performance.now() - startTime) / 1000).toFixed(3));
             liveChronoEl.textContent = `${reactionTime.toFixed(3)} s`;
             const diff = parseFloat(Math.abs(50 - position).toFixed(3));
-            const nextCount = prize.current + 1;
-            prize.current = nextCount; prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
-            sortScores(prize.scores);
+
             if (sbClient) {
-                await sbClient.from('scores').insert({ competition_id: prize.id, player_name: currentPlayerPseudo, diff, reaction_time: reactionTime });
-                await sbClient.from('competitions').update({ current_entries: nextCount }).eq('id', prize.id);
+                const { data, error } = await sbClient.functions.invoke('submit-play', {
+                    body: {
+                        competition_id: prize.id,
+                        diff,
+                        reaction_time: reactionTime
+                    }
+                });
+
+                if (error || !data?.success) {
+                    const errMsg = data?.error || error?.message || "Erreur d'enregistrement";
+                    resultBox.innerHTML = `<span style="color:var(--danger);font-size:13px;">❌ ${errMsg}</span>`;
+                    actionBtn.disabled = false;
+                    actionBtn.classList.remove('stop-mode');
+                    actionBtn.textContent = `Miser ${prize.cost.toFixed(2)} € et Jouer`;
+                    return;
+                }
+
+                if (typeof data.newBalance === 'number') {
+                    userBalance = Number(data.newBalance);
+                    updateBalanceDisplay();
+                }
+                if (typeof data.currentEntries === 'number') {
+                    prize.current = Number(data.currentEntries);
+                } else {
+                    prize.current = prize.current + 1;
+                }
+            } else {
+                prize.current = prize.current + 1;
             }
+
+            prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
+            sortScores(prize.scores);
             resultBox.innerHTML = `Écart : <strong>${diff.toFixed(3)}%</strong> • Temps : <strong>${reactionTime.toFixed(3)} s</strong>`;
             renderPrizes(); updateArena();
         }
