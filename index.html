@@ -291,7 +291,6 @@
 
 <script>
     const SUPABASE_URL = 'https://hvgrngfmbslpphrjldgl.supabase.co';
-    // Vérifiez dans Supabase > Settings > API que la clé anon commence bien par "eyJ..."
     const SUPABASE_ANON_KEY = 'sb_publishable_UKMHFE5XUdoenpv5Ds0bLA_Pcm-muaD';
 
     // Vos 4 liens de paiement Stripe en mode Live (l'identifiant user_id est ajouté automatiquement au clic)
@@ -495,6 +494,39 @@
     function sortScores(arr) { return arr.sort((a, b) => Math.abs(a.diff - b.diff) > 0.00001 ? a.diff - b.diff : a.time - b.time); }
     function getActivePrize() { return prizes.find(p => p.id === activePrizeId) || prizes[0]; }
 
+    function subscribeToRealtimeUpdates() {
+        if (!sbClient) return;
+
+        sbClient
+            .channel('skillwin-live')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'competitions' }, (payload) => {
+                const updated = payload.new;
+                const target = prizes.find(p => p.id === updated.id);
+                if (!target) return;
+
+                const nextEntries = Number(updated.current_entries);
+                if (nextEntries === 0 && target.current > 0) {
+                    target.scores = [];
+                }
+                target.current = nextEntries;
+                renderPrizes();
+                updateArena();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'scores' }, async () => {
+                const { data: freshScores } = await sbClient.from('scores').select('*');
+                if (!freshScores) return;
+
+                prizes.forEach(p => {
+                    p.scores = freshScores
+                        .filter(s => s.competition_id === p.id)
+                        .map(s => ({ player: s.player_name, diff: Number(s.diff), time: Number(s.reaction_time) }));
+                    sortScores(p.scores);
+                });
+                updateArena();
+            })
+            .subscribe();
+    }
+
     async function loadDataFromSupabase() {
         updateAuthHeaderUI();
         updateBalanceDisplay();
@@ -567,9 +599,10 @@
                 });
             }
 
-            dbStatusEl.textContent = '🟢 Connecté à Supabase (Sécurisé)';
+            dbStatusEl.textContent = '🟢 Connecté à Supabase (Temps réel)';
             renderPrizes();
             updateArena();
+            subscribeToRealtimeUpdates();
         } catch (e) {
             dbStatusEl.textContent = '❌ Erreur : ' + e.message;
             renderPrizes();
@@ -683,17 +716,19 @@
                     userBalance = Number(data.newBalance);
                     updateBalanceDisplay();
                 }
-                if (typeof data.currentEntries === 'number') {
+
+                // Si le palier vient d'être atteint, la remise à zéro sera appliquée par notify-winner et reçue via Realtime
+                if (typeof data.currentEntries === 'number' && data.currentEntries < prize.max) {
                     prize.current = Number(data.currentEntries);
-                } else {
-                    prize.current = prize.current + 1;
+                    prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
+                    sortScores(prize.scores);
                 }
             } else {
                 prize.current = prize.current + 1;
+                prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
+                sortScores(prize.scores);
             }
 
-            prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
-            sortScores(prize.scores);
             resultBox.innerHTML = `Écart : <strong>${diff.toFixed(3)}%</strong> • Temps : <strong>${reactionTime.toFixed(3)} s</strong>`;
             renderPrizes(); updateArena();
         }
