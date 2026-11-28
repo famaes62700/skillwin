@@ -317,6 +317,8 @@
     let authMode = 'login';
     let winnerBannerTimeout = null;
     let bannerPrizeId = null;
+    let bannerUntil = 0;
+    let bannerWinnerText = '';
 
     const prizesGrid = document.getElementById('prizes-grid');
     const balanceEl = document.getElementById('user-balance');
@@ -507,17 +509,24 @@
     }
 
     function triggerWinnerBanner(prize, winner) {
-        if (!winner || prize.id !== activePrizeId) return;
+        if (!winner) return;
+        prize.lastWinner = { ...winner };
         bannerPrizeId = prize.id;
-        winnerBanner.classList.add('show');
-        document.getElementById('winner-announcement').innerHTML =
-            `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+        bannerUntil = Date.now() + 25000;
+        bannerWinnerText = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+
+        if (prize.id === activePrizeId) {
+            winnerBanner.classList.add('show');
+            document.getElementById('winner-announcement').innerHTML = bannerWinnerText;
+        }
 
         if (winnerBannerTimeout) clearTimeout(winnerBannerTimeout);
         winnerBannerTimeout = setTimeout(() => {
+            bannerUntil = 0;
             bannerPrizeId = null;
-            winnerBanner.classList.remove('show');
-        }, 12000);
+            bannerWinnerText = '';
+            updateArena();
+        }, 25000);
     }
 
     function subscribeToRealtimeUpdates() {
@@ -682,21 +691,24 @@
         statusPill.className = `status-pill ${isFull ? 'closed' : ''}`;
         recordDisplayEl.textContent = prize.scores.length ? `${prize.scores[0].diff.toFixed(3)}% (${prize.scores[0].time.toFixed(3)}s)` : 'Aucun score';
 
-        const showingActiveBanner = bannerPrizeId === prize.id;
+        const showingActiveBanner = bannerPrizeId === prize.id && Date.now() < bannerUntil;
 
         if (isFull) {
             actionBtn.disabled = true; actionBtn.textContent = 'Session terminée'; actionBtn.className = 'btn-play';
-            const winner = prize.scores[0] || prize.lastWinner || { player: 'Aucun joueur', diff: 0, time: 0 };
+            const winner = prize.scores[0] || prize.lastWinner;
             winnerBanner.classList.add('show');
-            document.getElementById('winner-announcement').innerHTML = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+            if (winner) {
+                document.getElementById('winner-announcement').innerHTML = `<strong>${winner.player}</strong> remporte <strong>${prize.name}</strong> (${winner.diff.toFixed(3)}% en ${winner.time.toFixed(3)}s) !`;
+            } else {
+                document.getElementById('winner-announcement').innerHTML = `Session clôturée pour <strong>${prize.name}</strong>.`;
+            }
         } else {
             actionBtn.disabled = false;
             actionBtn.textContent = currentUser ? `Miser ${prize.cost.toFixed(2)} € et Jouer` : 'Connectez-vous pour Jouer';
             actionBtn.className = 'btn-play';
-            if (showingActiveBanner && prize.lastWinner) {
+            if (showingActiveBanner && bannerWinnerText) {
                 winnerBanner.classList.add('show');
-                document.getElementById('winner-announcement').innerHTML =
-                    `<strong>${prize.lastWinner.player}</strong> remporte <strong>${prize.name}</strong> (${prize.lastWinner.diff.toFixed(3)}% en ${prize.lastWinner.time.toFixed(3)}s) !`;
+                document.getElementById('winner-announcement').innerHTML = bannerWinnerText;
             } else {
                 winnerBanner.classList.remove('show');
             }
@@ -744,6 +756,9 @@
             const reactionTime = parseFloat(((performance.now() - startTime) / 1000).toFixed(3));
             liveChronoEl.textContent = `${reactionTime.toFixed(3)} s`;
             const diff = parseFloat(Math.abs(50 - position).toFixed(3));
+            const newEntry = { player: currentPlayerPseudo, diff, time: reactionTime };
+            const candidateScores = sortScores([...prize.scores, newEntry]);
+            const candidateWinner = candidateScores[0] || newEntry;
 
             if (sbClient) {
                 const { data, error } = await sbClient.functions.invoke('submit-play', {
@@ -768,22 +783,19 @@
                     updateBalanceDisplay();
                 }
 
-                const newEntry = { player: currentPlayerPseudo, diff, time: reactionTime };
-                prize.scores.push(newEntry);
-                sortScores(prize.scores);
+                prize.scores = candidateScores;
                 refreshLastWinnerForPrize(prize);
 
                 if (typeof data.currentEntries === 'number') {
                     if (data.currentEntries >= prize.max) {
-                        triggerWinnerBanner(prize, prize.scores[0]);
+                        triggerWinnerBanner(prize, candidateWinner);
                     } else {
                         prize.current = Number(data.currentEntries);
                     }
                 }
             } else {
                 prize.current = prize.current + 1;
-                prize.scores.push({ player: currentPlayerPseudo, diff, time: reactionTime });
-                sortScores(prize.scores);
+                prize.scores = candidateScores;
                 refreshLastWinnerForPrize(prize);
             }
 
